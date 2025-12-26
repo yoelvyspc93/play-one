@@ -129,17 +129,19 @@ function LobbyContent() {
 
     // Render Game View
     if (gameState && (mode === 'HOST' || mode === 'CLIENT') && gameState.phase !== 'LOBBY') {
-        const isMyTurn = gameState.order[gameState.currentPlayerIndex] === (client ? (client as any).peerManager.myId : host?.getPublicState().hostId);
+        const myId = client ? (client as any).peerManager.myId : (host as any).peerManager.myId;
+        const isMyTurn = gameState.order[gameState.currentPlayerIndex] === myId;
         
         return (
             <GameBoard 
                 state={gameState} 
                 myHand={myHand} 
                 isMyTurn={isMyTurn}
+                myId={myId}
                 onAction={(action) => {
                      // Inject Player ID if missing or 'ME'
                      if (!action.playerId || action.playerId === 'ME') {
-                         action.playerId = client ? (client as any).peerManager.myId : (host as any).peerManager.myId;
+                         action.playerId = myId;
                      }
                      if (client) client.sendIntent(action);
                      if (host) host.dispatchLocalAction(action);
