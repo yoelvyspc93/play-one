@@ -145,6 +145,15 @@ function applyPlayCard(state: GameState, playerId: string, cardIndex: number) {
   }
 }
 
+// Helper: Sync Public Players (Card Counts)
+function syncPublicPlayers(state: GameState) {
+  state.public.players = Object.values(state.players).map(p => ({
+    ...p,
+    hand: undefined,
+    cardCount: p.hand?.length || 0 // Ensure cardCount matches hand length (safe)
+  }));
+}
+
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   // Deep clone state to avoid mutations (naive clone for simple object)
@@ -298,6 +307,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     default:
       return state;
   }
+
+  // Always sync public players before returning
+  syncPublicPlayers(nextState);
+
+  return nextState;
 }
 
 export { createInitialState };

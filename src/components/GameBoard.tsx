@@ -64,7 +64,6 @@ export function GameBoard({ state, myHand, onAction, isMyTurn }: GameBoardProps)
                             hidden 
                             card={{} as any} 
                             onClick={() => {
-                                console.log('Deck Clicked! Turn:', isMyTurn);
                                 if (isMyTurn) onAction({ type: ActionType.DRAW_CARD, playerId: 'ME' });
                             }}
                             className="w-20 h-32 md:w-24 md:h-36 cursor-pointer"
@@ -117,12 +116,38 @@ export function GameBoard({ state, myHand, onAction, isMyTurn }: GameBoardProps)
                         </motion.div>
                     </div>
                 )}
+                {/* Winner Overlay */}
+                {state.phase === 'ROUND_END' && (
+                    <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md">
+                         <motion.div 
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            className="bg-gradient-to-br from-yellow-400 to-orange-500 p-10 rounded-3xl shadow-[0_0_50px_gold] text-center"
+                         >
+                             <div className="text-6xl mb-4">👑</div>
+                             <h1 className="text-4xl font-black text-white mb-2 text-shadow-lg">WINNER!</h1>
+                             
+                             <div className="text-2xl font-bold text-black bg-white/20 rounded-xl py-2 px-6 mb-8">
+                                 {state.players.find(p => p.id === state.winnerId)?.name || 'Unknown'}
+                             </div>
+
+                             <button 
+                                onClick={() => window.location.reload()} 
+                                className="bg-white text-orange-600 font-black text-xl py-3 px-8 rounded-full shadow-lg hover:scale-105 hover:shadow-xl transition-all"
+                             >
+                                 BACK TO LOBBY
+                             </button>
+                         </motion.div>
+                    </div>
+                )}
             </div>
 
             {/* My Hand (Bottom) */}
             <div className="w-full pb-8 pt-4 bg-gradient-to-t from-black/80 to-transparent z-20 flex flex-col items-center">
                 <div className="text-center text-white mb-2 font-bold text-shadow text-xl animate-pulse">
-                    {isMyTurn ? "Your Turn!" : `Waiting for ${state.order[state.currentPlayerIndex]}...`}
+                    {isMyTurn 
+                        ? "Your Turn!" 
+                        : `Waiting for ${state.players.find(p => p.id === state.order[state.currentPlayerIndex])?.name || 'Opponent'}...`}
                 </div>
                 <Hand 
                     cards={myHand} 

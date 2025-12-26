@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GameHost, GameClient, PublicState, Card } from '../../network';
+import { GameHost, GameClient } from '../../network';
 import { GameBoard } from '../../components/GameBoard';
-import { ActionType } from '../../engine';
+import { ActionType, PublicState, Card } from '../../engine';
 
 export default function LobbyPage() {
     const [mode, setMode] = useState<'HOME' | 'HOST' | 'CLIENT' | 'GAME'>('HOME');
     const [name, setName] = useState('');
+    const [roomNameInput, setRoomNameInput] = useState(''); // Custom Room ID
     const [roomId, setRoomId] = useState('');
     const [hostId, setHostId] = useState(''); // For joining
     const [error, setError] = useState('');
@@ -25,7 +26,10 @@ export default function LobbyPage() {
         setMode('HOST');
         const h = new GameHost(name);
         try {
-            const id = await h.start();
+            // Sanitize valid peer ID characters if needed, but basic alphanumeric is safer.
+            // If empty, random.
+            const customId = roomNameInput.trim() || undefined;
+            const id = await h.start(customId);
             setRoomId(id);
             setHost(h);
             setGameState(h.getPublicState());
@@ -62,6 +66,37 @@ export default function LobbyPage() {
         }
     };
     
+    const startSoloGame = async () => {
+        setMode('HOST');
+        const soloName = name || 'Player';
+        const h = new GameHost(soloName);
+        try {
+             // Create unique room for solo
+             const id = await h.start(`SOLO-${Math.floor(Math.random() * 1000)}`);
+             setRoomId(id);
+             setHost(h);
+             setGameState(h.getPublicState());
+             setMyHand(h.getMyHand());
+             
+             // Setup Polling
+             const interval = setInterval(() => {
+                 setGameState({...h.getPublicState()}); 
+                 setMyHand(h.getMyHand());
+             }, 500);
+             (window as any).hostInterval = interval;
+
+             // Add Bot and Start
+             h.addBot();
+             setTimeout(() => {
+                 h.startGame();
+             }, 500); // Small delay to ensuring state update
+
+        } catch (e: any) {
+             setError(e.message || 'Failed to start solo');
+             setMode('HOME');
+        }
+    };
+
     const startGame = () => {
         if (host) {
             host.startGame();
@@ -87,8 +122,8 @@ export default function LobbyPage() {
                 myHand={myHand} 
                 isMyTurn={isMyTurn}
                 onAction={(action) => {
-                     // Inject Player ID if missing
-                     if (!action.playerId) {
+                     // Inject Player ID if missing or 'ME'
+                     if (!action.playerId || action.playerId === 'ME') {
                          action.playerId = client ? (client as any).peerManager.myId : (host as any).peerManager.myId;
                      }
                      if (client) client.sendIntent(action);
@@ -123,7 +158,10 @@ export default function LobbyPage() {
                      
                      {mode === 'HOST' && (
                          <div className="flex flex-col gap-3">
-                             <button className="btn-primary w-full py-3 rounded-lg font-bold bg-yellow-500 hover:scale-105 transition-transform" onClick={startGame}>START GAME</button>
+                             <div className="flex gap-2">
+                                 <button className="btn-primary flex-1 py-3 rounded-lg font-bold bg-yellow-500 hover:scale-105 transition-transform" onClick={startGame}>START GAME</button>
+                                 <button className="px-4 py-3 rounded-lg font-bold bg-gray-600 hover:bg-gray-500 hover:scale-105 transition-transform" onClick={() => host?.addBot()}>+ BOT</button>
+                             </div>
                              <div className="text-center text-gray-500 text-sm">Min 2 players needed</div>
                          </div>
                      )}
@@ -154,11 +192,22 @@ export default function LobbyPage() {
                              onChange={e => setName(e.target.value)} 
                              placeholder="Enter Nickname" 
                          />
+
+                         <input 
+                             className="input-field bg-black/40 border border-white/20 rounded-xl p-4 text-center text-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 mt-2"
+                             value={roomNameInput} 
+                             onChange={e => setRoomNameInput(e.target.value)} 
+                             placeholder="Room Name (Optional)" 
+                         />
                          
                          <div className="h-px bg-white/20 my-2" />
                          
                          <button onClick={createRoom} className="bg-green-500 hover:bg-green-400 text-black font-bold py-4 rounded-xl shadow-lg transition-transform hover:scale-105">
                              CREATE ROOM
+                         </button>
+
+                         <button onClick={startSoloGame} className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 rounded-xl shadow-lg transition-transform hover:scale-105">
+                             PLAY SOLO (VS BOT)
                          </button>
                          
                          <div className="relative text-center text-sm text-gray-300">

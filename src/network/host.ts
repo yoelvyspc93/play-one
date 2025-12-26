@@ -8,14 +8,20 @@ import {
   createInitialState,
   gameReducer,
   GameAction,
-  ActionType
+  ActionType,
+  isValidMove
 } from '../engine';
+import { calculateBotMove } from '../engine/bot';
+import { v4 as uuidv4 } from 'uuid';
 
 export class GameHost {
   private peerManager: PeerManager;
   private state: GameState;
   private clients: Map<string, DataConnection> = new Map(); // PeerID -> Connection
   private playerToPeer: Map<string, string> = new Map(); // PlayerID -> PeerID (Usually same)
+  private bots: Set<string> = new Set(); // Bot Player IDs
+  private botInterval: NodeJS.Timeout | null = null;
+
 
   constructor(private hostPlayerName: string) {
     this.peerManager = new PeerManager();
@@ -23,8 +29,8 @@ export class GameHost {
     this.state = createInitialState(['host'], [hostPlayerName]);
   }
 
-  public async start(): Promise<string> {
-    const id = await this.peerManager.initialize();
+  public async start(customId?: string): Promise<string> {
+    const id = await this.peerManager.initialize(customId);
     console.log('Host initialized with ID:', id);
 
     this.peerManager.setMessageHandler(this.handleMessage.bind(this));
@@ -187,7 +193,76 @@ export class GameHost {
     // Logic to start game
     this.state = gameReducer(this.state, { type: ActionType.START_GAME });
     this.broadcastState();
+
+    // Start Bot Loop
+    if (this.botInterval) clearInterval(this.botInterval);
+    this.botInterval = setInterval(() => this.processBots(), 1000);
   }
+
+  public addBot() {
+    if (this.state.public.phase !== 'LOBBY') return;
+
+    const botId = `BOT-${uuidv4().slice(0, 4)}`;
+    const botName = `Bot ${this.bots.size + 1}`;
+
+    // Update state manually or via reducer if we had JOIN action (reducer has placeholder).
+    // Manual update safest for now.
+    this.state.public.players.push({
+      id: botId,
+      name: botName,
+      connected: true,
+      cardCount: 0
+    });
+    this.state.players[botId] = {
+      id: botId,
+      name: botName,
+      connected: true,
+      cardCount: 0,
+      hand: []
+    };
+    this.state.public.order.push(botId);
+    this.bots.add(botId);
+    this.broadcastState();
+  }
+
+  private processBots() {
+    try {
+      if (this.state.public.phase !== 'TURN' && this.state.public.phase !== 'CHOOSE_COLOR_REQUIRED') return;
+
+      const currentPlayerId = this.state.public.order[this.state.public.currentPlayerIndex];
+      if (!this.bots.has(currentPlayerId)) return;
+
+      // Compute Move
+      const player = this.state.players[currentPlayerId];
+      // We need complete Hand for bot.
+
+      // Simulate think time 
+      // calculateBotMove needs "myHand" and public state.
+      const action = calculateBotMove(this.state, currentPlayerId);
+
+      if (action) {
+        this.handleIntent({ action }, currentPlayerId); // Self-invoke
+      } else {
+        // Should not happen if computeBestMove returns DRAW if no moves.
+        // Check if draw needed?
+        const { pendingDraw } = this.state.public;
+        if (!isValidMove({} as any, this.state.public, player.hand)) {
+          // Force Draw
+          console.warn('Bot returned null action, forcing Draw');
+          this.handleIntent({ action: { type: ActionType.DRAW_CARD, playerId: currentPlayerId } }, currentPlayerId);
+        } else {
+          // Valid move exists but bot returned null? 
+          // Fallback: draw
+          this.handleIntent({ action: { type: ActionType.DRAW_CARD, playerId: currentPlayerId } }, currentPlayerId);
+        }
+      }
+    } catch (e: any) {
+      console.error('Bot Error:', e);
+      // Fallback: skip turn or random action?
+      // Safest is to do nothing and hope next tick works, or force draw if possible.
+    }
+  }
+
 
   public getPublicState() {
     return this.state.public;
@@ -202,6 +277,7 @@ export class GameHost {
   }
 
   public destroy() {
+    if (this.botInterval) clearInterval(this.botInterval);
     this.peerManager.destroy();
   }
 }
