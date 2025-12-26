@@ -6,6 +6,7 @@ A real-time multiplayer card game built with Next.js and PeerJS.
 ## Features
 - **P2P Multiplayer**: Hosting and Joining via PeerJS.
 - **Bot Mode**: Play vs AI.
+- **Solo Mode**: One-click "Play vs Bot" from home screen.
 - **Responsive**: Mobile-first design.
 - **Animations**: Smooth transitions with Framer Motion.
 

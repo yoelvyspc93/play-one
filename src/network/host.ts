@@ -46,6 +46,7 @@ export class GameHost {
     // Let's re-init for simplicity or update the ID mappings.
     // Re-init:
     this.state = createInitialState([id], [this.hostPlayerName]);
+    this.state.public.roomId = id; // Sync correct Room ID
 
     return id;
   }

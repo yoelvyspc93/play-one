@@ -58,6 +58,7 @@ export interface PublicState {
   winnerId?: string;
   roundEndReason?: RoundEndReason;
   stateVersion: number;
+  version: number;
 }
 
 export interface InternalState {

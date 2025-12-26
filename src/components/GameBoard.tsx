@@ -41,10 +41,10 @@ export function GameBoard({ state, myHand, onAction, isMyTurn }: GameBoardProps)
             </div>
 
             {/* Game Area */}
-            <div className="flex-1 flex flex-col items-center justify-center relative">
+            <div className="flex flex-col items-center justify-between relative h-full pt-32">
                 
                 {/* Opponents (Top Row for MVP) */}
-                <div className="absolute top-20 flex gap-8">
+                <div className="flex items-center gap-8">
                      {state.players.filter(p => !myHand.some(c => false /* TODO: filter me */)).map(p => (
                          // We don't know who "me" is easily to filter. 
                          // Let's just show ALL other players for now.
@@ -54,7 +54,7 @@ export function GameBoard({ state, myHand, onAction, isMyTurn }: GameBoardProps)
                 </div>
                 
                 {/* Center Table */}
-                <div className="flex items-center gap-8 mb-20">
+                <div className="flex items-center gap-8">
                     {/* Deck - Explicit Click Handler */} 
                     <div 
                         className="relative transition-transform active:scale-95 hover:scale-105"
@@ -140,20 +140,20 @@ export function GameBoard({ state, myHand, onAction, isMyTurn }: GameBoardProps)
                          </motion.div>
                     </div>
                 )}
-            </div>
 
-            {/* My Hand (Bottom) */}
-            <div className="w-full pb-8 pt-4 bg-gradient-to-t from-black/80 to-transparent z-20 flex flex-col items-center">
-                <div className="text-center text-white mb-2 font-bold text-shadow text-xl animate-pulse">
-                    {isMyTurn 
-                        ? "Your Turn!" 
-                        : `Waiting for ${state.players.find(p => p.id === state.order[state.currentPlayerIndex])?.name || 'Opponent'}...`}
+                {/* My Hand (Bottom) */}
+                <div className="w-full pb-8 pt-4 bg-gradient-to-t from-black/80 to-transparent z-20 flex flex-col items-center">
+                    <div className="text-center text-white mb-2 font-bold text-shadow text-xl animate-pulse">
+                        {isMyTurn 
+                            ? "Your Turn!" 
+                            : `Waiting for ${state.players.find(p => p.id === state.order[state.currentPlayerIndex])?.name || 'Opponent'}...`}
+                    </div>
+                    <Hand 
+                        cards={myHand} 
+                        active={isMyTurn && state.phase === 'TURN'} 
+                        onPlay={(card) => onAction({ type: ActionType.PLAY_CARD, playerId: 'ME', cardId: card.id })} 
+                    />
                 </div>
-                <Hand 
-                    cards={myHand} 
-                    active={isMyTurn && state.phase === 'TURN'} 
-                    onPlay={(card) => onAction({ type: ActionType.PLAY_CARD, playerId: 'ME', cardId: card.id })} 
-                />
             </div>
         </div>
     );

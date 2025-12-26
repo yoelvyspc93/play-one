@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { GameHost, GameClient } from '../../network';
 import { GameBoard } from '../../components/GameBoard';
 import { ActionType, PublicState, Card } from '../../engine';
 
-export default function LobbyPage() {
+function LobbyContent() {
     const [mode, setMode] = useState<'HOME' | 'HOST' | 'CLIENT' | 'GAME'>('HOME');
     const [name, setName] = useState('');
     const [roomNameInput, setRoomNameInput] = useState(''); // Custom Room ID
@@ -96,6 +97,20 @@ export default function LobbyPage() {
              setMode('HOME');
         }
     };
+    
+    // Auto-start check
+    const searchParams = useSearchParams();
+    const hasAutoStarted = useRef(false);
+
+    useEffect(() => {
+        const action = searchParams.get('action');
+        if (action === 'solo' && !hasAutoStarted.current) {
+            console.log("Auto-starting Solo Game...");
+            hasAutoStarted.current = true;
+            // Name might be empty, will default to 'Player' in startSoloGame
+            startSoloGame();
+        }
+    }, [searchParams]);
 
     const startGame = () => {
         if (host) {
@@ -233,5 +248,13 @@ export default function LobbyPage() {
             </div>
             
         </div>
+    );
+}
+
+export default function LobbyPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Loading...</div>}>
+            <LobbyContent />
+        </Suspense>
     );
 }

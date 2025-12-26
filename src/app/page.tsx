@@ -31,6 +31,9 @@ export default function Home() {
                    <Link href="/lobby" className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xl rounded-2xl shadow-xl transform transition hover:-translate-y-1 hover:shadow-2xl">
                        PLAY ONLINE
                    </Link>
+                   <Link href="/lobby?action=solo" className="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105">
+                        PLAY SOLO (VS BOT)
+                   </Link>
                    <Link href="/debug" className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-xl rounded-2xl border border-white/20 backdrop-blur-md">
                        DEBUG / SOLO
                    </Link>
