@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { GameHost, GameClient } from '../../network';
 import { GameBoard } from '../../components/GameBoard';
 import { ActionType, PublicState, Card } from '../../engine';
 
-export default function LobbyPage() {
+function LobbyContent() {
     const [mode, setMode] = useState<'HOME' | 'HOST' | 'CLIENT' | 'GAME'>('HOME');
     const [name, setName] = useState('');
     const [roomNameInput, setRoomNameInput] = useState(''); // Custom Room ID
@@ -96,6 +97,20 @@ export default function LobbyPage() {
              setMode('HOME');
         }
     };
+    
+    // Auto-start check
+    const searchParams = useSearchParams();
+    const hasAutoStarted = useRef(false);
+
+    useEffect(() => {
+        const action = searchParams.get('action');
+        if (action === 'solo' && !hasAutoStarted.current) {
+            console.log("Auto-starting Solo Game...");
+            hasAutoStarted.current = true;
+            // Name might be empty, will default to 'Player' in startSoloGame
+            startSoloGame();
+        }
+    }, [searchParams]);
 
     const startGame = () => {
         if (host) {
@@ -114,17 +129,19 @@ export default function LobbyPage() {
 
     // Render Game View
     if (gameState && (mode === 'HOST' || mode === 'CLIENT') && gameState.phase !== 'LOBBY') {
-        const isMyTurn = gameState.order[gameState.currentPlayerIndex] === (client ? (client as any).peerManager.myId : host?.getPublicState().hostId);
+        const myId = client ? (client as any).peerManager.myId : (host as any).peerManager.myId;
+        const isMyTurn = gameState.order[gameState.currentPlayerIndex] === myId;
         
         return (
             <GameBoard 
                 state={gameState} 
                 myHand={myHand} 
                 isMyTurn={isMyTurn}
+                myId={myId}
                 onAction={(action) => {
                      // Inject Player ID if missing or 'ME'
                      if (!action.playerId || action.playerId === 'ME') {
-                         action.playerId = client ? (client as any).peerManager.myId : (host as any).peerManager.myId;
+                         action.playerId = myId;
                      }
                      if (client) client.sendIntent(action);
                      if (host) host.dispatchLocalAction(action);
@@ -233,5 +250,13 @@ export default function LobbyPage() {
             </div>
             
         </div>
+    );
+}
+
+export default function LobbyPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Loading...</div>}>
+            <LobbyContent />
+        </Suspense>
     );
 }

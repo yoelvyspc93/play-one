@@ -12,12 +12,12 @@ interface HandProps {
 
 export function Hand({ cards, onPlay, active }: HandProps) {
     return (
-        <div className="flex justify-center items-end h-40">
+        <div className="flex justify-center items-end h-28 md:h-40">
             <div className="relative flex items-center w-full max-w-2xl justify-center">
                 <AnimatePresence>
                     {cards.map((card, index) => {
                         // Responsive overlapping
-                        const overlap = cards.length > 5 ? '-ml-8 md:-ml-12' : '-ml-4 md:-ml-8';
+                        const overlap = cards.length > 12 ? '-ml-12 md:-ml-16' : cards.length > 6 ? '-ml-10 md:-ml-12' : '-ml-4 md:-ml-8';
                         
                         return (
                             <motion.div
@@ -34,7 +34,7 @@ export function Hand({ cards, onPlay, active }: HandProps) {
                                     card={card} 
                                     onClick={() => active && onPlay(card)}
                                     disabled={!active}
-                                    className="w-20 h-32 md:w-24 md:h-36"
+                                    className="w-16 h-24 md:w-24 md:h-36"
                                 />
                             </motion.div>
                         );

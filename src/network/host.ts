@@ -46,6 +46,7 @@ export class GameHost {
     // Let's re-init for simplicity or update the ID mappings.
     // Re-init:
     this.state = createInitialState([id], [this.hostPlayerName]);
+    this.state.public.roomId = id; // Sync correct Room ID
 
     return id;
   }
@@ -203,7 +204,7 @@ export class GameHost {
     if (this.state.public.phase !== 'LOBBY') return;
 
     const botId = `BOT-${uuidv4().slice(0, 4)}`;
-    const botName = `Bot ${this.bots.size + 1}`;
+    const botName = this.bots.size === 0 ? 'PlayBot' : `PlayBot ${this.bots.size + 1}`;
 
     // Update state manually or via reducer if we had JOIN action (reducer has placeholder).
     // Manual update safest for now.

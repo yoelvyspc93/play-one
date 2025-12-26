@@ -55,7 +55,7 @@ function CardContent({ card }: { card: CardType }) {
     // Number
     if (card.kind === CardKind.NUMBER) {
         return (
-            <span className="text-6xl font-bold italic tracking-tighter shadow-sm-text">
+            <span className="text-5xl md:text-7xl font-bold italic tracking-tighter shadow-sm-text">
                 {card.number}
             </span>
         );
@@ -102,15 +102,21 @@ export function Card({ card, onClick, disabled, hidden, className, style }: Card
                 onClick={onClick}
                 whileHover={onClick ? { scale: 1.05 } : {}}
                 className={clsx(
-                    "rounded-xl border-2 border-white shadow-lg",
-                    "bg-gradient-to-br from-gray-900 to-black", 
-                    "flex items-center justify-center",
-                    className || "w-20 h-32 md:w-24 md:h-36" // Default sizes
+                    "rounded-xl border-4 border-white shadow-[0_10px_20px_rgba(0,0,0,0.3)]",
+                    "bg-gradient-to-br from-red-600 to-red-800", // UNO back is usually red
+                    "flex items-center justify-center relative overflow-hidden",
+                    className || "w-20 h-32 md:w-24 md:h-36"
                 )}
                 style={style}
             >
-                <div className="w-12 h-20 md:w-16 md:h-24 border-2 border-red-500 rounded-lg flex items-center justify-center opacity-50">
-                     <span className="text-red-500 font-bold rotate-45 text-xs md:text-base">UNO</span>
+                {/* Outer black border look */}
+                <div className="absolute inset-1 rounded-lg border-2 border-black/20" />
+                
+                {/* Central Oval */}
+                <div className="w-16 h-28 md:w-20 md:h-32 bg-black rounded-full transform rotate-[35deg] flex items-center justify-center shadow-inner border-2 border-yellow-400/30">
+                     <span className="text-yellow-400 font-black text-xl md:text-2xl transform -rotate-[35deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] italic tracking-tighter">
+                         UNO
+                     </span>
                 </div>
             </motion.div>
         );
@@ -147,7 +153,7 @@ export function Card({ card, onClick, disabled, hidden, className, style }: Card
             </div>
 
             {/* Center Content */}
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center -left-2">
                 <CardContent card={card} />
             </div>
             

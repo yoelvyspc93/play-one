@@ -217,7 +217,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           }
         }
       }
-      return nextState;
+      break;
     }
 
     case ActionType.PLAY_CARD: {
@@ -236,7 +236,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       applyPlayCard(nextState, action.playerId, cardIndex);
-      return nextState;
+      break;
     }
 
     case ActionType.CHOOSE_COLOR: {
@@ -262,7 +262,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // So just advance.
 
       advanceTurn(nextState);
-      return nextState;
+      break;
     }
 
     case ActionType.DRAW_CARD: {
@@ -294,14 +294,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           }
         }
       }
-      return nextState;
+      break;
     }
 
     case ActionType.PLAYER_JOIN: {
       if (nextState.public.phase !== GamePhase.LOBBY) return state;
       // Add player loop...
       // Simplified for now
-      return nextState;
+      break;
     }
 
     default:
