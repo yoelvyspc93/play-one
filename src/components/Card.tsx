@@ -11,6 +11,7 @@ interface CardProps {
     hidden?: boolean;
     className?: string; // For positioning override
     style?: React.CSSProperties;
+    activeColor?: CardColor | null; // For wild cards to show selected color
 }
 
 const colorStyles = {
@@ -31,23 +32,23 @@ const textStyles = {
 
 // Helper to render center content
 function CardContent({ card }: { card: CardType }) {
-    if (card.color === CardColor.WILD) {
-        if (card.kind === CardKind.WILD_DRAW_FOUR) {
-            return (
-                <div className="flex flex-col items-center justify-center h-full">
-                     <div className="grid grid-cols-2 gap-1">
-                          <div className="w-4 h-6 bg-red-500 rounded-sm" />
-                          <div className="w-4 h-6 bg-blue-500 rounded-sm" />
-                          <div className="w-4 h-6 bg-green-500 rounded-sm" />
-                          <div className="w-4 h-6 bg-yellow-400 rounded-sm" />
-                     </div>
-                     <span className="mt-1 font-bold text-lg">+4</span>
-                </div>
-            );
-        }
+    if (card.kind === CardKind.WILD_DRAW_FOUR) {
         return (
             <div className="flex flex-col items-center justify-center h-full">
-                  <div className="w-12 h-12 rounded-full conic-gradient-wild border-4 border-white" style={{ background: 'conic-gradient(red, yellow, green, blue, red)'}} />
+                 <div className="grid grid-cols-2 gap-1">
+                      <div className="w-4 h-6 bg-red-500 rounded-sm shadow-sm" />
+                      <div className="w-4 h-6 bg-blue-500 rounded-sm shadow-sm" />
+                      <div className="w-4 h-6 bg-green-500 rounded-sm shadow-sm" />
+                      <div className="w-4 h-6 bg-yellow-400 rounded-sm shadow-sm" />
+                 </div>
+            </div>
+        );
+    }
+    
+    if (card.kind === CardKind.WILD) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full">
+                  <div className="w-12 h-12 rounded-full conic-gradient-wild border-4 border-white shadow-lg" style={{ background: 'conic-gradient(red, yellow, green, blue, red)'}} />
             </div>
         );
     }
@@ -94,7 +95,7 @@ function CornerMark({ card }: { card: CardType }) {
 }
 
 
-export function Card({ card, onClick, disabled, hidden, className, style }: CardProps) {
+export function Card({ card, onClick, disabled, hidden, className, style, activeColor }: CardProps) {
     if (hidden) {
         return (
             <motion.div 
@@ -122,7 +123,10 @@ export function Card({ card, onClick, disabled, hidden, className, style }: Card
         );
     }
 
-    const baseColor = card.color || CardColor.WILD; // Fallback
+    // Determine the base color of the card. 
+    // If it's a wild card and an active color is provided, use that.
+    const isWild = card.kind === CardKind.WILD || card.kind === CardKind.WILD_DRAW_FOUR;
+    const baseColor = (isWild && activeColor) ? activeColor : (card.color || CardColor.WILD);
     
     return (
         <motion.div

@@ -1,10 +1,8 @@
 'use client';
 
 import { PublicState, Card as CardType, CardColor, ActionType } from '../engine';
-import { GameHost, GameClient } from '../network';
 import { Card } from './Card';
 import { Hand } from './Hand';
-import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface GameBoardProps {
@@ -52,25 +50,7 @@ export function GameBoard({ state, myHand, onAction, isMyTurn, myId }: GameBoard
             {/* Background Texture/Gradient */}
             <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_100%)] from-green-400" />
             
-            {/* Header / HUD */}
-            <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center text-white z-50 pointer-events-none">
-                <div className="hidden md:block bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 pointer-events-auto">
-                    Room: <span className="font-mono text-yellow-400">{state.roomId}</span>
-                </div>
-                
-                <div className="flex gap-4">
-                    {state.currentColor && (
-                        <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/20 flex items-center gap-2 pointer-events-auto shadow-lg">
-                            <span className="text-[10px] md:text-xs text-gray-300 uppercase font-bold">Color:</span>
-                            <div 
-                                className="w-3 h-3 md:w-4 md:h-4 rounded-full shadow-inner border border-white/20" 
-                                style={{ backgroundColor: state.currentColor.toLowerCase() === 'wild' ? 'white' : state.currentColor.toLowerCase() }} 
-                            />
-                            <span className="font-black text-xs md:text-base">{state.currentColor}</span>
-                        </div>
-                    )}
-                </div>
-            </div>
+
 
             {/* Main Table Area */}
             <div className={`relative flex-1 flex flex-col ${totalPlayers === 2 ? 'justify-around py-4' : 'items-center justify-center'} transition-all px-4`}>
@@ -119,7 +99,11 @@ export function GameBoard({ state, myHand, onAction, isMyTurn, myId }: GameBoard
                                     animate={{ scale: 1, opacity: 1, rotate: 0, y: 0 }}
                                     className="relative z-10"
                                 >
-                                    <Card card={state.topCard} className="w-20 h-28 md:w-28 md:h-40 shadow-2xl" />
+                                    <Card 
+                                        card={state.topCard} 
+                                        activeColor={state.currentColor}
+                                        className="w-20 h-28 md:w-28 md:h-40 shadow-2xl" 
+                                    />
                                 </motion.div>
                             ) : (
                                 <div className="w-20 h-28 md:w-28 md:h-40 border-4 border-dashed border-white/20 rounded-xl flex items-center justify-center text-white/20 font-bold">
@@ -178,6 +162,7 @@ export function GameBoard({ state, myHand, onAction, isMyTurn, myId }: GameBoard
                 <div className="flex items-center justify-center gap-4 relative">
                     <Hand 
                         cards={myHand} 
+                        state={state}
                         active={isMyTurn && state.phase === 'TURN'} 
                         onPlay={(card) => onAction({ type: ActionType.PLAY_CARD, playerId: 'ME', cardId: card.id })} 
                     />

@@ -14,6 +14,8 @@ import {
 import { calculateBotMove } from '../engine/bot';
 import { v4 as uuidv4 } from 'uuid';
 
+const botNames = ['Luna', 'Lucky', 'Atlas', 'Ares', 'Apollo', 'Athena', 'Zeus', 'Hades', 'Gael', 'Zara', 'Nina'];
+
 export class GameHost {
   private peerManager: PeerManager;
   private state: GameState;
@@ -68,30 +70,38 @@ export class GameHost {
       return;
     }
 
+    // Check for 4 player limit
+    if (this.state.public.phase === 'LOBBY' && this.state.public.players.length >= 4) {
+      // Find if there is a bot with the same name as the joining player
+      const botWithSameName = this.state.public.players.find(p => this.bots.has(p.id) && p.name.toLowerCase() === payload.name.toLowerCase());
+
+      const botIds = Array.from(this.bots);
+      if (botIds.length > 0) {
+        // Kick the matched bot or the last one if no match
+        const botIdToKick = botWithSameName?.id || botIds[botIds.length - 1];
+
+        this.bots.delete(botIdToKick);
+        this.state.public.order = this.state.public.order.filter(id => id !== botIdToKick);
+        this.state.public.players = this.state.public.players.filter(p => p.id !== botIdToKick);
+        delete this.state.players[botIdToKick];
+        console.log(`Kicked bot ${botIdToKick} (Name: ${botWithSameName ? 'Matched' : 'Last Bot'}) to make space for human player`);
+      } else {
+        // No bots to kick, room is truly full
+        this.peerManager.send(conn, {
+          type: MessageType.ERROR,
+          roomId: this.state.public.roomId,
+          senderId: this.peerManager.myId,
+          payload: { code: 'ROOM_FULL', message: 'The room is full' }
+        });
+        return;
+      }
+    }
+
     // Add to clients
     this.clients.set(peerId, conn);
     this.playerToPeer.set(peerId, peerId);
 
     // Add player to game state
-    // We need a REDUCER action for Player Join to accept it safely
-    const joinAction: GameAction = {
-      type: ActionType.PLAYER_JOIN,
-      playerId: peerId,
-      name: payload.name
-    };
-
-    // Dispatch (but we need to implement PLAYER_JOIN logic in reducer properly, currently it's a stub)
-    // For MVP, directly mutating state or ensuring reducer handles it.
-    // Let's assume we update the reducer to handle it.
-    // Or for now, hack it:
-    // this.state = gameReducer(this.state, joinAction);
-
-    // Wait, reducer logic for JOIN was... stubbed. 
-    // We need to fix reducer.ts to handle PLAYER_JOIN
-    // Let's implement it here manually for now to avoid context switching too much,
-    // or better, send a patch to reducer later.
-
-    // Actually, if we are in LOBBY, we can just add the player.
     if (this.state.public.phase === 'LOBBY') {
       this.state.public.players.push({
         id: peerId,
@@ -202,9 +212,20 @@ export class GameHost {
 
   public addBot() {
     if (this.state.public.phase !== 'LOBBY') return;
+    if (this.state.public.players.length >= 4) {
+      console.warn('Cannot add more bots, lobby is full');
+      return;
+    }
 
     const botId = `BOT-${uuidv4().slice(0, 4)}`;
-    const botName = this.bots.size === 0 ? 'PlayBot' : `PlayBot ${this.bots.size + 1}`;
+
+    // Pick a random name from the list, trying to avoid duplicates
+    const currentBotNames = Object.values(this.state.players).map(p => p.name);
+    const availableNames = botNames.filter(name => !currentBotNames.includes(name));
+
+    // Fallback to random choice from full list if all are taken
+    const sourceList = availableNames.length > 0 ? availableNames : botNames;
+    const botName = sourceList[Math.floor(Math.random() * sourceList.length)];
 
     // Update state manually or via reducer if we had JOIN action (reducer has placeholder).
     // Manual update safest for now.
@@ -226,41 +247,59 @@ export class GameHost {
     this.broadcastState();
   }
 
+  private botActionPending: boolean = false;
+
   private processBots() {
     try {
-      if (this.state.public.phase !== 'TURN' && this.state.public.phase !== 'CHOOSE_COLOR_REQUIRED') return;
+      if (this.state.public.phase !== 'TURN' && this.state.public.phase !== 'CHOOSE_COLOR_REQUIRED') {
+        return;
+      }
 
       const currentPlayerId = this.state.public.order[this.state.public.currentPlayerIndex];
       if (!this.bots.has(currentPlayerId)) return;
 
-      // Compute Move
-      const player = this.state.players[currentPlayerId];
-      // We need complete Hand for bot.
+      // Avoid multiple concurrent "thinking" processes for the same bot
+      if (this.botActionPending) return;
 
-      // Simulate think time 
-      // calculateBotMove needs "myHand" and public state.
-      const action = calculateBotMove(this.state, currentPlayerId);
+      this.botActionPending = true;
 
-      if (action) {
-        this.handleIntent({ action }, currentPlayerId); // Self-invoke
-      } else {
-        // Should not happen if computeBestMove returns DRAW if no moves.
-        // Check if draw needed?
-        const { pendingDraw } = this.state.public;
-        if (!isValidMove({} as any, this.state.public, player.hand)) {
-          // Force Draw
-          console.warn('Bot returned null action, forcing Draw');
-          this.handleIntent({ action: { type: ActionType.DRAW_CARD, playerId: currentPlayerId } }, currentPlayerId);
-        } else {
-          // Valid move exists but bot returned null? 
-          // Fallback: draw
-          this.handleIntent({ action: { type: ActionType.DRAW_CARD, playerId: currentPlayerId } }, currentPlayerId);
+      // Human-like delay: 2s to 5s
+      const thinkTime = 2000 + Math.random() * 3000;
+
+      setTimeout(() => {
+        try {
+          // Re-verify it's still the bot's turn and game still running
+          if (this.state.public.phase !== 'TURN' && this.state.public.phase !== 'CHOOSE_COLOR_REQUIRED') {
+            this.botActionPending = false;
+            return;
+          }
+
+          const activePlayerId = this.state.public.order[this.state.public.currentPlayerIndex];
+          if (activePlayerId !== currentPlayerId) {
+            this.botActionPending = false;
+            return;
+          }
+
+          const action = calculateBotMove(this.state, currentPlayerId);
+
+          if (action) {
+            this.handleIntent({ action }, currentPlayerId);
+          } else {
+            // Fallback to draw if no move calculated
+            this.handleIntent({
+              action: { type: ActionType.DRAW_CARD, playerId: currentPlayerId }
+            }, currentPlayerId);
+          }
+        } catch (e) {
+          console.error('Error in bot thought execution:', e);
+        } finally {
+          this.botActionPending = false;
         }
-      }
+      }, thinkTime);
+
     } catch (e: any) {
-      console.error('Bot Error:', e);
-      // Fallback: skip turn or random action?
-      // Safest is to do nothing and hope next tick works, or force draw if possible.
+      console.error('Bot Pipeline Error:', e);
+      this.botActionPending = false;
     }
   }
 

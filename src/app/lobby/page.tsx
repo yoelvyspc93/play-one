@@ -177,7 +177,13 @@ function LobbyContent() {
                          <div className="flex flex-col gap-3">
                              <div className="flex gap-2">
                                  <button className="btn-primary flex-1 py-3 rounded-lg font-bold bg-yellow-500 hover:scale-105 transition-transform" onClick={startGame}>START GAME</button>
-                                 <button className="px-4 py-3 rounded-lg font-bold bg-gray-600 hover:bg-gray-500 hover:scale-105 transition-transform" onClick={() => host?.addBot()}>+ BOT</button>
+                                 <button 
+                                     className={`px-4 py-3 rounded-lg font-bold transition-transform ${gameState.players.length >= 4 ? 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-50' : 'bg-gray-600 hover:bg-gray-500 hover:scale-105'}`} 
+                                     onClick={() => gameState.players.length < 4 && host?.addBot()}
+                                     disabled={gameState.players.length >= 4}
+                                 >
+                                     + BOT
+                                 </button>
                              </div>
                              <div className="text-center text-gray-500 text-sm">Min 2 players needed</div>
                          </div>

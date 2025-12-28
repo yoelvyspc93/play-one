@@ -183,38 +183,31 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       });
 
       // Flip top card
-      const top = nextState.internal.deck.pop();
-      if (top) {
-        nextState.public.topCard = top;
-
-        // Apply Initial Card Effect (Spec 4.3)
-        // Simplified: Just set color/number. 
-        // If Wild, first player chooses? logic says: "El primer jugador elige el color."
-        // Implementation: If Wild/+4, Phase -> CHOOSE_COLOR_REQUIRED for first player?
-        // Spec 4.3: "Si es Wild: Se requiere elección de color inicial (el primer jugador)."
-        // "Si es +4: ... El primer jugador elige el color."
+      let top: Card | undefined;
+      while (true) {
+        top = nextState.internal.deck.pop();
+        if (!top) break;
 
         if (top.kind === CardKind.WILD || top.kind === CardKind.WILD_DRAW_FOUR) {
-          nextState.public.phase = GamePhase.CHOOSE_COLOR_REQUIRED;
-          // Current player is dealer + 1 (already 0 if dealer is last)
-          // Assume idx 0 starts.
-          nextState.public.currentPlayerIndex = 0; // Explicitly
-          nextState.public.currentColor = null; // Waiting choice
-        } else {
-          nextState.public.currentColor = top.color;
-          // Apply effects (Skip, Reverse, Draw2)
-          // Spec 4.3 details:
-          // Skip: First player loses turn.
-          // Reverse: Change direction. (If 2 players, acts as skip).
-          // +2: pendingDraw = 2.
+          // Put back and reshuffle
+          nextState.internal.deck.unshift(top);
+          nextState.internal.deck = shuffle(nextState.internal.deck);
+          continue;
+        }
+        break;
+      }
 
-          const effect = evaluateCardEffect(top, 0, 1, nextState.public.order.length);
-          nextState.public.pendingDraw = effect.pendingDraw;
-          nextState.public.direction = effect.direction;
+      if (top) {
+        nextState.public.topCard = top;
+        nextState.public.currentColor = top.color;
 
-          if (effect.skipNext) {
-            advanceTurn(nextState); // Skip the first player
-          }
+        // Apply effects (Skip, Reverse, Draw2)
+        const effect = evaluateCardEffect(top, 0, 1, nextState.public.order.length);
+        nextState.public.pendingDraw = effect.pendingDraw;
+        nextState.public.direction = effect.direction;
+
+        if (effect.skipNext) {
+          advanceTurn(nextState); // Skip the first player
         }
       }
       break;
@@ -297,10 +290,47 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       break;
     }
 
+    case ActionType.PLAYER_LEAVE: {
+      const player = nextState.players[action.playerId];
+      if (!player) return state;
+
+      player.connected = false;
+      // Mark as disconnected, cards are removed in some versions, 
+      // but here we just follow the "if only 1 remains, end game" rule.
+
+      const connectedCount = Object.values(nextState.players).filter(p => p.connected).length;
+      if (connectedCount <= 1) {
+        nextState.public.phase = GamePhase.ROUND_END;
+        nextState.public.roundEndReason = RoundEndReason.OPPONENT_LEFT;
+
+        // If 1 remains, they are the winner
+        if (connectedCount === 1) {
+          const winner = Object.values(nextState.players).find(p => p.connected);
+          if (winner) nextState.public.winnerId = winner.id;
+        }
+      } else {
+        // If it was their turn, advance
+        if (nextState.public.order[nextState.public.currentPlayerIndex] === action.playerId) {
+          advanceTurn(nextState);
+        }
+      }
+      break;
+    }
+
     case ActionType.PLAYER_JOIN: {
       if (nextState.public.phase !== GamePhase.LOBBY) return state;
-      // Add player loop...
-      // Simplified for now
+      if (nextState.players[action.playerId]) return state; // Already in
+
+      const newPlayer: Player = {
+        id: action.playerId,
+        name: action.name,
+        connected: true,
+        hand: [],
+        cardCount: 0,
+      };
+
+      nextState.players[action.playerId] = newPlayer;
+      nextState.public.order.push(action.playerId);
       break;
     }
 
