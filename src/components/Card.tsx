@@ -12,6 +12,7 @@ interface CardProps {
     className?: string; // For positioning override
     style?: React.CSSProperties;
     activeColor?: CardColor | null; // For wild cards to show selected color
+    hoverable?: boolean;
 }
 
 const colorStyles = {
@@ -36,10 +37,10 @@ function CardContent({ card }: { card: CardType }) {
         return (
             <div className="flex flex-col items-center justify-center h-full">
                  <div className="grid grid-cols-2 gap-1">
-                      <div className="w-4 h-6 bg-red-500 rounded-sm shadow-sm" />
-                      <div className="w-4 h-6 bg-blue-500 rounded-sm shadow-sm" />
-                      <div className="w-4 h-6 bg-green-500 rounded-sm shadow-sm" />
-                      <div className="w-4 h-6 bg-yellow-400 rounded-sm shadow-sm" />
+                      <div className="w-3 h-5 bg-red-500 rounded-sm shadow-sm" />
+                      <div className="w-3 h-5 bg-blue-500 rounded-sm shadow-sm" />
+                      <div className="w-3 h-5 bg-green-500 rounded-sm shadow-sm" />
+                      <div className="w-3 h-5 bg-yellow-400 rounded-sm shadow-sm" />
                  </div>
             </div>
         );
@@ -95,13 +96,13 @@ function CornerMark({ card }: { card: CardType }) {
 }
 
 
-export function Card({ card, onClick, disabled, hidden, className, style, activeColor }: CardProps) {
+export function Card({ card, onClick, disabled, hidden, className, style, activeColor, hoverable = true }: CardProps) {
     if (hidden) {
         return (
             <motion.div 
                 layout
                 onClick={onClick}
-                whileHover={onClick ? { scale: 1.05 } : {}}
+                whileHover={onClick && hoverable ? { scale: 1.05 } : {}}
                 className={clsx(
                     "rounded-xl border-4 border-white shadow-[0_10px_20px_rgba(0,0,0,0.3)]",
                     "bg-gradient-to-br from-red-600 to-red-800", // UNO back is usually red
@@ -132,8 +133,8 @@ export function Card({ card, onClick, disabled, hidden, className, style, active
         <motion.div
             layout 
             onClick={!disabled ? onClick : undefined}
-            whileHover={!disabled ? { y: -20, scale: 1.1, zIndex: 10 } : {}}
-            whileTap={!disabled ? { scale: 0.95 } : {}}
+            whileHover={!disabled && hoverable ? { y: -20, scale: 1.1, zIndex: 10 } : {}}
+            whileTap={!disabled && hoverable ? { scale: 0.95 } : {}}
             className={clsx(
                 "relative rounded-xl shadow-md border-4 border-white select-none overflow-hidden",
                 "bg-gradient-to-br", colorStyles[baseColor],
@@ -157,7 +158,7 @@ export function Card({ card, onClick, disabled, hidden, className, style, active
             </div>
 
             {/* Center Content */}
-            <div className="absolute inset-0 flex items-center justify-center -left-2">
+            <div className={`absolute inset-0 flex items-center justify-center ${!isWild ? '-left-2' : ''}`}>
                 <CardContent card={card} />
             </div>
             
