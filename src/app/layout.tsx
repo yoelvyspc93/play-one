@@ -20,8 +20,8 @@ export const metadata: Metadata = {
 	manifest: '/play-one/manifest.json',
 	icons: [
 		{
-			url: '/play-one/icon.png',
-			type: 'image/png',
+			url: '/play-one/icon.webp',
+			type: 'image/webp',
 		},
 	],
 }

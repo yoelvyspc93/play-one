@@ -8,9 +8,9 @@
   "theme_color": "#065f46",
   "icons": [
     {
-      "src": "/play-one/icon.png",
+      "src": "/play-one/icon.webp",
       "sizes": "any",
-      "type": "image/png"
+      "type": "image/webp"
     }
   ]
 }

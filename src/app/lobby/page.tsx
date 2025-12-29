@@ -4,11 +4,12 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { GameHost, GameClient } from '../../network';
 import { GameBoard } from '../../components/GameBoard';
-import { ActionType, PublicState, Card } from '../../engine';
+import {  PublicState, Card } from '../../engine';
 import { TEXTS } from '../../engine/texts';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Avatar } from '../../components/Avatar';
+import bg from '@/public/bg.webp';
 
 
 function LobbyContent() {
@@ -162,16 +163,16 @@ function LobbyContent() {
     // Lobby View
     if (gameState) {
          return (
-             <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
-                 <div className="bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-md">
-                     <h1 className="text-3xl font-bold mb-6 text-center text-yellow-400">
+             <div className="min-h-screen text-white flex flex-col items-center justify-center p-4" style={{ backgroundImage: `url(${bg.src})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+                 <div className="bg-white/10 backdrop-blur-sm p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20">
+                     <h1 className="text-3xl font-bold mb-6 text-center text-gray-700">
                          {isSolo ? TEXTS.home.playSolo : TEXTS.lobby.lobbyTitle}
                      </h1>
 
                      
                      {!isSolo && (
                          <div className="mb-6 bg-black/50 p-4 rounded text-center">
-                             <div className="text-gray-400 text-sm">{TEXTS.lobby.roomId}</div>
+                             <div className="text-gray-500 text-sm">{TEXTS.lobby.roomId}</div>
                              <div className="text-xl font-mono select-all bg-black p-2 rounded mt-1 border border-gray-700">{roomId || hostId}</div>
 
                          </div>
@@ -183,7 +184,7 @@ function LobbyContent() {
                              {gameState.players.map(p => {
                                  const isMe = p.id === (client ? (client as any).peerManager.myId : roomId);
                                  return (
-                                     <li key={p.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded-xl border border-white/5">
+                                     <li key={p.id} className="flex justify-between items-center bg-white/10 backdrop-blur-sm p-4 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20 border border-white/5">
                                          <div className="flex items-center gap-3">
                                              <Avatar name={p.name} size="sm" />
                                              <span className="font-bold">{p.name} {isMe && TEXTS.common.youLabel}</span>
@@ -209,7 +210,7 @@ function LobbyContent() {
                                      {TEXTS.lobby.addBot}
                                  </Button>
                              </div>
-                             <div className="text-center text-gray-500 text-sm">{TEXTS.lobby.minPlayers}</div>
+                             <div className="text-center text-gray-600 text-sm">{TEXTS.lobby.minPlayers}</div>
                          </div>
                      )}
                      
@@ -224,14 +225,10 @@ function LobbyContent() {
 
     // Login/Home
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white flex flex-col items-center justify-center font-sans">
-            <h1 className="text-6xl font-black mb-8 italic tracking-tighter drop-shadow-lg text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">
-                PLAY<span className="text-white">ONE</span>
-            </h1>
-            
+        <div className="min-h-screen p-4 text-white flex flex-col items-center justify-center font-sans" style={{ backgroundImage: `url(${bg.src})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>            
             {error && <div className="bg-red-500/80 p-3 rounded mb-4">{error}</div>}
             
-            <div className="bg-white/10 backdrop-blur-md p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20">
+            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20">
                 {mode === 'HOME' && (
                     <div className="flex flex-col gap-4">
                          <Input 
@@ -258,7 +255,7 @@ function LobbyContent() {
                                      {TEXTS.lobby.createRoom}
                                  </Button>                                 
                                  
-                                 <div className="relative text-center justify text-sm text-gray-300 my-2 flex flex-row gap-2">
+                                 <div className="relative text-center justify text-sm text-gray-600 my-2 flex flex-row gap-2">
                                     <div className='w-full h-0.5 h-px bg-white/20 my-2'/>
                                     <span className='w-full'>{TEXTS.lobby.orJoin}</span>
                                     <div className='w-full h-0.5 h-px bg-white/20 my-2'/>
@@ -270,7 +267,7 @@ function LobbyContent() {
                                          onChange={e => setHostId(e.target.value)} 
                                          placeholder={TEXTS.lobby.pasteRoomId} 
                                      />
-                                     <Button onClick={joinRoom}>
+                                     <Button onClick={joinRoom} size='lg'>
                                          {TEXTS.lobby.join}
                                      </Button>
                                  </div>
