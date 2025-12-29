@@ -1,0 +1,17 @@
+{
+  "name": "PlayOne",
+  "short_name": "PlayOne",
+  "description": "Juego de cartas rápido para jugar en línea o en solitario.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#facc15",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

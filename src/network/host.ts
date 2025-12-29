@@ -12,6 +12,7 @@ import {
   isValidMove
 } from '../engine';
 import { calculateBotMove } from '../engine/bot';
+import { calculateBotDelay } from './botDelay';
 import { v4 as uuidv4 } from 'uuid';
 
 const botNames = ['Luna', 'Lucky', 'Atlas', 'Ares', 'Apollo', 'Athena', 'Zeus', 'Hades', 'Gael', 'Zara', 'Nina'];
@@ -263,8 +264,8 @@ export class GameHost {
 
       this.botActionPending = true;
 
-      // Human-like delay: 2s to 5s
-      const thinkTime = 2000 + Math.random() * 3000;
+      const currentBot = this.state.players[currentPlayerId];
+      const thinkTime = calculateBotDelay(currentBot?.hand?.length ?? 1);
 
       setTimeout(() => {
         try {

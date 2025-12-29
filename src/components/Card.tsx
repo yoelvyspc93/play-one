@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Card as CardType, CardColor, CardKind } from '../engine';
 import { clsx } from 'clsx';
+import { text } from '../content/texts';
 
 interface CardProps {
     card: CardType;
@@ -117,7 +118,7 @@ export function Card({ card, onClick, disabled, hidden, className, style, active
                 {/* Central Oval */}
                 <div className="w-16 h-28 md:w-20 md:h-32 bg-black rounded-full transform rotate-[35deg] flex items-center justify-center shadow-inner border-2 border-yellow-400/30">
                      <span className="text-yellow-400 font-black text-xl md:text-2xl transform -rotate-[35deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] italic tracking-tighter">
-                         UNO
+                         {text.app.cardBackLabel}
                      </span>
                 </div>
             </motion.div>
