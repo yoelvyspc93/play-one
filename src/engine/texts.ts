@@ -14,14 +14,14 @@ export const TEXTS = {
     description:
       'Disfruta el clásico reimaginado. Juega en solitario contra bots inteligentes o reta a tus amigos por P2P. Sin registro.',
     playOnline: 'JUGAR EN LÍNEA',
-    playSolo: 'JUGAR SOLO',
+    playSolo: 'JUGAR',
     github: 'GitHub',
   },
   lobby: {
     lobbyTitle: 'Lobby de PlayOne',
     roomId: 'ID de sala',
     players: 'Jugadores',
-    startGame: 'INICIAR PARTIDA',
+    startGame: 'INICIAR',
     addBot: '+ BOT',
     minPlayers: 'Se necesitan mínimo 2 jugadores',
     waitingHost: 'Esperando a que el host inicie...',
