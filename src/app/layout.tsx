@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: [
     {
-      url: "/vercel.svg",
-      type: "image/svg+xml",
+      url: "/icon.png",
+      type: "image/png",
     }
   ]
 };
