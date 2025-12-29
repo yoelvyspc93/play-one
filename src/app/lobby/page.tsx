@@ -7,6 +7,11 @@ import { GameBoard } from '../../components/GameBoard';
 import { ActionType, PublicState, Card } from '../../engine';
 
 function LobbyContent() {
+    const searchParams = useSearchParams();
+    const modeParam = searchParams.get('mode') || searchParams.get('action');
+    const isSolo = modeParam?.toLowerCase() === 'solo';
+    const forcedMode = isSolo ? 'solo' : (modeParam?.toLowerCase() === 'online' ? 'online' : null);
+    
     const [mode, setMode] = useState<'HOME' | 'HOST' | 'CLIENT' | 'GAME'>('HOME');
     const [name, setName] = useState('');
     const [roomNameInput, setRoomNameInput] = useState(''); // Custom Room ID
@@ -27,8 +32,6 @@ function LobbyContent() {
         setMode('HOST');
         const h = new GameHost(name);
         try {
-            // Sanitize valid peer ID characters if needed, but basic alphanumeric is safer.
-            // If empty, random.
             const customId = roomNameInput.trim() || undefined;
             const id = await h.start(customId);
             setRoomId(id);
@@ -67,9 +70,10 @@ function LobbyContent() {
         }
     };
     
-    const startSoloGame = async () => {
+    const startSoloLobby = async () => {
+        if (!name) return setError('Name required');
         setMode('HOST');
-        const soloName = name || 'Player';
+        const soloName = name;
         const h = new GameHost(soloName);
         try {
              // Create unique room for solo
@@ -86,11 +90,8 @@ function LobbyContent() {
              }, 500);
              (window as any).hostInterval = interval;
 
-             // Add Bot and Start
+             // Add one bot by default
              h.addBot();
-             setTimeout(() => {
-                 h.startGame();
-             }, 500); // Small delay to ensuring state update
 
         } catch (e: any) {
              setError(e.message || 'Failed to start solo');
@@ -98,20 +99,6 @@ function LobbyContent() {
         }
     };
     
-    // Auto-start check
-    const searchParams = useSearchParams();
-    const hasAutoStarted = useRef(false);
-
-    useEffect(() => {
-        const action = searchParams.get('action');
-        if (action === 'solo' && !hasAutoStarted.current) {
-            console.log("Auto-starting Solo Game...");
-            hasAutoStarted.current = true;
-            // Name might be empty, will default to 'Player' in startSoloGame
-            startSoloGame();
-        }
-    }, [searchParams]);
-
     const startGame = () => {
         if (host) {
             host.startGame();
@@ -155,11 +142,16 @@ function LobbyContent() {
          return (
              <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
                  <div className="bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-md">
-                     <h1 className="text-3xl font-bold mb-6 text-center text-yellow-400">PlayOne Lobby</h1>
-                     <div className="mb-6 bg-black/50 p-4 rounded text-center">
-                         <div className="text-gray-400 text-sm">Room ID</div>
-                         <div className="text-xl font-mono select-all bg-black p-2 rounded mt-1 border border-gray-700">{roomId || hostId}</div>
-                     </div>
+                     <h1 className="text-3xl font-bold mb-6 text-center text-yellow-400">
+                         {isSolo ? 'Solo Play' : 'PlayOne Lobby'}
+                     </h1>
+                     
+                     {!isSolo && (
+                         <div className="mb-6 bg-black/50 p-4 rounded text-center">
+                             <div className="text-gray-400 text-sm">Room ID</div>
+                             <div className="text-xl font-mono select-all bg-black p-2 rounded mt-1 border border-gray-700">{roomId || hostId}</div>
+                         </div>
+                     )}
                      
                      <div className="mb-6">
                          <h2 className="text-xl font-bold mb-2">Players</h2>
@@ -216,38 +208,42 @@ function LobbyContent() {
                              placeholder="Enter Nickname" 
                          />
 
-                         <input 
-                             className="input-field bg-black/40 border border-white/20 rounded-xl p-4 text-center text-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 mt-2"
-                             value={roomNameInput} 
-                             onChange={e => setRoomNameInput(e.target.value)} 
-                             placeholder="Room Name (Optional)" 
-                         />
-                         
-                         <div className="h-px bg-white/20 my-2" />
-                         
-                         <button onClick={createRoom} className="bg-green-500 hover:bg-green-400 text-black font-bold py-4 rounded-xl shadow-lg transition-transform hover:scale-105">
-                             CREATE ROOM
-                         </button>
-
-                         <button onClick={startSoloGame} className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 rounded-xl shadow-lg transition-transform hover:scale-105">
-                             PLAY SOLO (VS BOT)
-                         </button>
-                         
-                         <div className="relative text-center text-sm text-gray-300">
-                              <span>OR JOIN</span>
-                         </div>
-                         
-                         <div className="flex gap-2">
-                             <input 
-                                 className="flex-1 bg-black/40 border border-white/20 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                                 value={hostId} 
-                                 onChange={e => setHostId(e.target.value)} 
-                                 placeholder="Paste Room ID" 
-                             />
-                             <button onClick={joinRoom} className="bg-blue-500 hover:bg-blue-400 text-white font-bold p-3 rounded-xl transition-transform hover:scale-105">
-                                 JOIN
+                         {isSolo ? (
+                             <button onClick={startSoloLobby} className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 rounded-xl shadow-lg transition-transform hover:scale-105 mt-2">
+                                 COMENZAR
                              </button>
-                         </div>
+                         ) : (
+                             <>
+                                 <input 
+                                     className="input-field bg-black/40 border border-white/20 rounded-xl p-4 text-center text-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 mt-2"
+                                     value={roomNameInput} 
+                                     onChange={e => setRoomNameInput(e.target.value)} 
+                                     placeholder="Room Name (Optional)" 
+                                 />
+                                 
+                                 <div className="h-px bg-white/20 my-2" />
+                                 
+                                 <button onClick={createRoom} className="bg-green-500 hover:bg-green-400 text-black font-bold py-4 rounded-xl shadow-lg transition-transform hover:scale-105">
+                                     CREATE ROOM
+                                 </button>
+                                 
+                                 <div className="relative text-center text-sm text-gray-300 my-2">
+                                      <span>OR JOIN</span>
+                                 </div>
+                                 
+                                 <div className="flex gap-2">
+                                     <input 
+                                         className="flex-1 bg-black/40 border border-white/20 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                         value={hostId} 
+                                         onChange={e => setHostId(e.target.value)} 
+                                         placeholder="Paste Room ID" 
+                                     />
+                                     <button onClick={joinRoom} className="bg-blue-500 hover:bg-blue-400 text-white font-bold p-3 rounded-xl transition-transform hover:scale-105">
+                                         JOIN
+                                     </button>
+                                 </div>
+                             </>
+                         )}
                     </div>
                 )}
                 
