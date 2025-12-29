@@ -2,6 +2,15 @@ import { GameState, Card, CardKind, CardColor, GamePhase } from './types';
 import { GameAction, ActionType } from './actions';
 import { isValidMove } from './logic';
 
+const MIN_DELAY_MS = 1000;
+const MAX_DELAY_MS = 3000;
+
+export function calculateBotDelay(cardCount: number) {
+  const clamped = Math.max(1, Math.min(cardCount, 10));
+  const ratio = (clamped - 1) / 9;
+  return Math.round(MIN_DELAY_MS + ratio * (MAX_DELAY_MS - MIN_DELAY_MS));
+}
+
 // Helper: Count colors in hand
 export function getMostAbundantColor(hand: Card[]): CardColor { // Exported for testing/logic re-use if needed
   const counts: Record<string, number> = {
