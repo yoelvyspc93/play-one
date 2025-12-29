@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import type { NextConfig } from "next";
 
 const withPWA = require('next-pwa')({
@@ -9,7 +10,7 @@ const withPWA = require('next-pwa')({
 
 const nextConfig: NextConfig = {
   output: 'export',
-  // @ts-ignore - next-pwa uses webpack which conflicts with turbopack default in Next 16
+  basePath: '/play-one',
   turbopack: {},
   typescript: {
     ignoreBuildErrors: true,

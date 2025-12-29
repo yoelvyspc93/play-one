@@ -1,50 +1,50 @@
-import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
 
-import "./globals.css";
+import './globals.css'
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+	variable: '--font-geist-sans',
+	subsets: ['latin'],
+})
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+	variable: '--font-geist-mono',
+	subsets: ['latin'],
+})
 
 export const metadata: Metadata = {
-  title: "PlayOne",
-  description: "Juega UNO online o contra bots de forma gratuita y sin registros.",
-  manifest: "/manifest.json",
-  icons: [
-    {
-      url: "/icon.png",
-      type: "image/png",
-    }
-  ]
-};
+	title: 'PlayOne',
+	description:
+		'Juega UNO online o contra bots de forma gratuita y sin registros.',
+	manifest: '/play-one/manifest.json',
+	icons: [
+		{
+			url: '/play-one/icon.png',
+			type: 'image/png',
+		},
+	],
+}
 
 export const viewport: Viewport = {
-  themeColor: "#065f46",
-  width: 'device-width',
+	themeColor: '#065f46',
+	width: 'device-width',
 	initialScale: 1,
 	userScalable: false,
 }
 
-
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode
 }>) {
-  return (
-    <html lang="es">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
-  );
+	return (
+		<html lang="es">
+			<body
+				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+			>
+				{children}
+			</body>
+		</html>
+	)
 }
