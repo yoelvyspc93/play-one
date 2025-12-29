@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Card } from '../components/Card';
 import { CardKind, CardColor } from '../engine';
+import { TEXTS } from '../engine/texts';
+
 
 export default function Home() {
   return (
@@ -20,22 +22,22 @@ export default function Home() {
           
           <div className="flex flex-col gap-6 relative z-10 max-w-lg text-center md:text-left">
                <h1 className="text-7xl font-black text-white italic leading-tight drop-shadow-2xl">
-                   THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">ULTIMATE</span><br/>
-                   CARD GAME
+                   {TEXTS.home.titleIntro} <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">{TEXTS.home.titleHighlight}</span>
                </h1>
                <p className="text-gray-300 text-lg">
-                   Experience the classic game reimagined. Play solo against smart bots or challenge friends via P2P. No login required.
+                   {TEXTS.home.description}
                </p>
                
                <div className="flex gap-4 justify-center md:justify-start">
                    <Link href="/lobby?mode=online" className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xl rounded-2xl shadow-xl transform transition hover:-translate-y-1 hover:shadow-2xl">
-                       JUGAR ONLINE
+                       {TEXTS.home.playOnline}
                    </Link>
                    <Link href="/lobby?mode=solo" className="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105">
-                        JUGAR SOLO
+                        {TEXTS.home.playSolo}
                    </Link>
                 </div>
           </div>
+
           
           {/* Hero Image / Stack */}
           <div className="relative z-10 hidden md:block w-96 h-96">

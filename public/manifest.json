@@ -1,0 +1,16 @@
+{
+  "name": "PlayOne",
+  "short_name": "PlayOne",
+  "description": "The Ultimate Card Game",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#065f46",
+  "theme_color": "#065f46",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}
