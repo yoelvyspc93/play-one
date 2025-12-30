@@ -16,7 +16,7 @@ const colorOptions = [
 
 export function ColorChooser({ onSelect }: ColorChooserProps) {
 	return (
-		<div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md">
+		<div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-lg">
 			<motion.div
 				initial={{ scale: 0.6, opacity: 0 }}
 				animate={{ scale: 1, opacity: 1 }}

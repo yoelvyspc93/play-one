@@ -10,7 +10,7 @@ interface WinScreenProps {
 
 export function WinScreen({ winnerName, onRestart }: WinScreenProps) {
 	return (
-		<div className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl">
+		<div className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-black/90 backdrop-blur-lg">
 			<motion.div
 				initial={{ scale: 0, rotate: -180 }}
 				animate={{ scale: 1, rotate: 0 }}
