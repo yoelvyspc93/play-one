@@ -6,7 +6,7 @@ import bg from '@/public/bg-home.webp'
 export default function Home() {
 	return (
 		<div
-			className="min-h-screen flex flex-col items-center justify-center relative p-4"
+			className="min-h-dvh flex flex-col items-center justify-center relative p-4"
 			style={{
 				backgroundImage: `url(${bg.src})`,
 				backgroundSize: 'cover',
