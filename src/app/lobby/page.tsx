@@ -5,16 +5,19 @@ import { useSearchParams } from 'next/navigation'
 import { GameHost, GameClient } from '../../network'
 import { GameBoard } from '../../components/GameBoard'
 import { PublicState, Card } from '../../engine'
-import { TEXTS } from '../../engine/texts'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Avatar } from '../../components/Avatar'
 import bg from '@/public/bg.webp'
+import { createBots } from '@/lib/bots'
+import { DEFAULT_SETTINGS, GameSettings, loadSettings, saveSettings } from '@/lib/settings'
+import { useTexts } from '@/lib/i18n'
 
 function LobbyContent() {
 	const searchParams = useSearchParams()
 	const modeParam = searchParams.get('mode') || searchParams.get('action')
 	const isSolo = modeParam?.toLowerCase() === 'solo'
+	const texts = useTexts()
 
 	const [mode, setMode] = useState<'HOME' | 'HOST' | 'CLIENT' | 'GAME'>('HOME')
 	const [name, setName] = useState('')
@@ -22,17 +25,21 @@ function LobbyContent() {
 	const [roomId, setRoomId] = useState('')
 	const [hostId, setHostId] = useState('') // For joining
 	const [error, setError] = useState('')
+	const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS)
 
 	// Load name from localStorage on mount
 	useEffect(() => {
-		const savedName = localStorage.getItem('play-one-nickname')
-		if (savedName) setName(savedName)
+		const loaded = loadSettings()
+		setSettings(loaded)
+		if (loaded.nickname) setName(loaded.nickname)
 	}, [])
 
 	// Save name to localStorage when it changes
 	const handleNameChange = (newName: string) => {
 		setName(newName)
-		localStorage.setItem('play-one-nickname', newName)
+		const nextSettings = { ...settings, nickname: newName }
+		setSettings(nextSettings)
+		saveSettings(nextSettings)
 	}
 
 	// Instances
@@ -44,7 +51,7 @@ function LobbyContent() {
 	const [myHand, setMyHand] = useState<Card[]>([])
 
 	const createRoom = async () => {
-		if (!name) return setError(TEXTS.lobby.errors.nameRequired)
+		if (!name) return setError(texts.lobby.errors.nameRequired)
 		setMode('HOST')
 		setError('')
 
@@ -64,14 +71,14 @@ function LobbyContent() {
 
 			;(window as any).hostInterval = interval
 		} catch (e: any) {
-			setError(e.message || 'Failed to start host')
+			setError(e.message || texts.lobby.errors.startHost)
 			setMode('HOME')
 		}
 	}
 
 	const joinRoom = async () => {
 		if (!name || !hostId)
-			return setError(TEXTS.lobby.errors.nameAndRoomRequired)
+			return setError(texts.lobby.errors.nameAndRoomRequired)
 		setMode('CLIENT')
 
 		const c = new GameClient(name)
@@ -90,7 +97,7 @@ function LobbyContent() {
 	}
 
 	const startSoloLobby = async () => {
-		if (!name) return setError(TEXTS.lobby.errors.nameRequired)
+		if (!name) return setError(texts.lobby.errors.nameRequired)
 		setMode('HOST')
 
 		const soloName = name
@@ -110,10 +117,8 @@ function LobbyContent() {
 			}, 500)
 			;(window as any).hostInterval = interval
 
-			// Add one bot by default
-			h.addBot()
 		} catch (e: any) {
-			setError(e.message || 'Failed to start solo')
+			setError(e.message || texts.lobby.errors.startSolo)
 			setMode('HOME')
 		}
 	}
@@ -122,6 +127,12 @@ function LobbyContent() {
 		if (host) {
 			host.startGame()
 		}
+	}
+
+	const handleAddBot = () => {
+		if (!host || gameState?.players.length >= 4) return
+		const [bot] = createBots(settings, gameState?.players.length ?? 1, 1)
+		if (bot) host.addBot(bot)
 	}
 
 	// Cleanup
@@ -177,12 +188,12 @@ function LobbyContent() {
 			>
 				<div className="bg-white/10 backdrop-blur-lg p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20">
 					<h1 className="text-3xl font-bold mb-6 text-center text-gray-700">
-						{isSolo ? TEXTS.home.playSolo : TEXTS.lobby.lobbyTitle}
+						{isSolo ? texts.home.playSolo : texts.lobby.lobbyTitle}
 					</h1>
 
 					{!isSolo && (
 						<div className="mb-6 rounded text-center">
-							<div className="text-gray-500 text-sm">{TEXTS.lobby.roomId}</div>
+							<div className="text-gray-500 text-sm">{texts.lobby.roomId}</div>
 							<div className="text-xl font-mono select-all bg-gray-700 p-2 rounded mt-1 border border-gray-700">
 								{roomId || hostId}
 							</div>
@@ -190,7 +201,7 @@ function LobbyContent() {
 					)}
 
 					<div className="mb-6">
-						<h2 className="text-xl font-bold mb-4">{TEXTS.lobby.players}</h2>
+						<h2 className="text-xl font-bold mb-4">{texts.lobby.players}</h2>
 						<ul className="space-y-3">
 							{gameState.players.map((p) => {
 								const isMe =
@@ -203,7 +214,7 @@ function LobbyContent() {
 										<div className="flex items-center gap-3">
 											<Avatar name={p.name} size="sm" />
 											<span className="font-bold">
-												{p.name} {isMe && TEXTS.common.youLabel}
+												{p.name} {isMe && texts.common.youLabel}
 											</span>
 										</div>
 									</li>
@@ -216,25 +227,25 @@ function LobbyContent() {
 						<div className="flex flex-col gap-3">
 							<div className="flex gap-2">
 								<Button className="flex-1" size="lg" onClick={startGame}>
-									{TEXTS.lobby.startGame}
+									{texts.lobby.startGame}
 								</Button>
 								<Button
 									variant="secondary"
-									onClick={() => gameState.players.length < 4 && host?.addBot()}
+									onClick={handleAddBot}
 									disabled={gameState.players.length >= 4}
 								>
-									{TEXTS.lobby.addBot}
+									{texts.lobby.addBot}
 								</Button>
 							</div>
 							<div className="text-center text-gray-600 text-sm">
-								{TEXTS.lobby.minPlayers}
+								{texts.lobby.minPlayers}
 							</div>
 						</div>
 					)}
 
 					{mode === 'CLIENT' && (
 						<div className="text-center animate-pulse">
-							{TEXTS.lobby.waitingHost}
+							{texts.lobby.waitingHost}
 						</div>
 					)}
 				</div>
@@ -261,29 +272,29 @@ function LobbyContent() {
 						<Input
 							value={name}
 							onChange={(e) => handleNameChange(e.target.value)}
-							placeholder={TEXTS.lobby.enterNickname}
+							placeholder={texts.lobby.enterNickname}
 						/>
 
 						{isSolo ? (
 							<Button onClick={startSoloLobby} size="xl" className="mt-2">
-								{TEXTS.lobby.startGame}
+								{texts.lobby.startGame}
 							</Button>
 						) : (
 							<>
 								<Input
 									value={roomNameInput}
 									onChange={(e) => setRoomNameInput(e.target.value)}
-									placeholder={TEXTS.lobby.roomNameOptional}
+									placeholder={texts.lobby.roomNameOptional}
 									className="mt-2"
 								/>
 
 								<Button variant="success" onClick={createRoom} size="lg">
-									{TEXTS.lobby.createRoom}
+									{texts.lobby.createRoom}
 								</Button>
 
 								<div className="relative text-center justify text-sm text-gray-600 my-2 flex flex-row gap-2">
 									<div className="w-full h-0.5 h-px bg-white/20 my-2" />
-									<span className="w-full">{TEXTS.lobby.orJoin}</span>
+									<span className="w-full">{texts.lobby.orJoin}</span>
 									<div className="w-full h-0.5 h-px bg-white/20 my-2" />
 								</div>
 
@@ -291,10 +302,10 @@ function LobbyContent() {
 									<Input
 										value={hostId}
 										onChange={(e) => setHostId(e.target.value)}
-										placeholder={TEXTS.lobby.pasteRoomId}
+										placeholder={texts.lobby.pasteRoomId}
 									/>
 									<Button onClick={joinRoom} size="lg">
-										{TEXTS.lobby.join}
+										{texts.lobby.join}
 									</Button>
 								</div>
 							</>
@@ -304,12 +315,12 @@ function LobbyContent() {
 
 				{mode === 'HOST' && (
 					<p className="text-center animate-pulse text-gray-800">
-						{TEXTS.lobby.initializingHost}
+						{texts.lobby.initializingHost}
 					</p>
 				)}
 				{mode === 'CLIENT' && (
 					<p className="text-center animate-pulse text-gray-800">
-						{TEXTS.lobby.connectingHost}
+						{texts.lobby.connectingHost}
 					</p>
 				)}
 			</div>

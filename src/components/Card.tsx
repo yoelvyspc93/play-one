@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { Card as CardType, CardColor, CardKind } from '../engine'
 import { clsx } from 'clsx'
-import { TEXTS } from '../engine/texts'
+import { useTexts } from '@/lib/i18n'
 
 interface CardProps {
 	card: CardType
@@ -33,6 +33,8 @@ const textStyles = {
 }
 
 function CardBack({ onClick, hoverable, className, style }: any) {
+	const texts = useTexts()
+
 	return (
 		<motion.div
 			layout
@@ -46,7 +48,7 @@ function CardBack({ onClick, hoverable, className, style }: any) {
 		>
 			<div className="absolute inset-1 bg-gradient-to-br from-red-800 to-red-900 rounded-full transform -skew-x-10 flex items-center justify-center shadow-inner transform rotate-[25deg]" />
 			<span className="absolute text-white font-black text-xl md:text-1xl transform -rotate-[52deg] italic tracking-tighter">
-				{TEXTS.app.cardBackLabel}
+				{texts.app.cardBackLabel}
 			</span>
 		</motion.div>
 	)

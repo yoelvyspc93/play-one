@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { TEXTS } from '../engine/texts'
+import { useTexts } from '@/lib/i18n'
 
 interface WinScreenProps {
 	winnerName: string
@@ -9,6 +9,8 @@ interface WinScreenProps {
 }
 
 export function WinScreen({ winnerName, onRestart }: WinScreenProps) {
+	const texts = useTexts()
+
 	return (
 		<div className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-black/90 backdrop-blur-lg">
 			<motion.div
@@ -22,7 +24,7 @@ export function WinScreen({ winnerName, onRestart }: WinScreenProps) {
 						🏆
 					</div>
 					<h1 className="text-5xl md:text-6xl font-black text-white mb-2 italic tracking-tighter drop-shadow-md">
-						{TEXTS.game.victory}
+						{texts.game.victory}
 					</h1>
 
 					<div className="text-2xl md:text-3xl font-black text-black bg-white/90 rounded-2xl py-3 px-10 mb-9 md:mb-10 shadow-inner">
@@ -33,7 +35,7 @@ export function WinScreen({ winnerName, onRestart }: WinScreenProps) {
 						onClick={onRestart}
 						className="w-full bg-white text-orange-600 font-black text-xl md:text-2xl py-4 md:py-5 px-10 rounded-2xl shadow-2xl hover:scale-[1.03] hover:bg-gray-100 active:scale-[0.98] transition-all uppercase tracking-tight"
 					>
-						{TEXTS.game.playAgain}
+						{texts.game.playAgain}
 					</button>
 				</div>
 			</motion.div>

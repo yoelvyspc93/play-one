@@ -1,14 +1,16 @@
-import { GameState, Card, CardKind, CardColor, GamePhase, PublicState } from './types';
+import { GameState, Card, CardKind, CardColor, GamePhase, PublicState, BotProfileName, BotTuning } from './types';
 import { GameAction, ActionType } from './actions';
 import { evaluateCardEffect, getNextPlayerIndex, isValidMove } from './logic';
 
 const MIN_DELAY_MS = 1000;
 const MAX_DELAY_MS = 3000;
 
-export function calculateBotDelay(cardCount: number) {
+export function calculateBotDelay(cardCount: number, tuning?: BotTuning) {
   const clamped = Math.max(1, Math.min(cardCount, 10));
   const ratio = (clamped - 1) / 9;
-  return Math.round(MIN_DELAY_MS + ratio * (MAX_DELAY_MS - MIN_DELAY_MS));
+  const minDelay = tuning?.delayMinMs ?? MIN_DELAY_MS;
+  const maxDelay = tuning?.delayMaxMs ?? MAX_DELAY_MS;
+  return Math.round(minDelay + ratio * (maxDelay - minDelay));
 }
 
 type PlayableColor = Exclude<CardColor, CardColor.WILD>;
@@ -103,8 +105,6 @@ function getCriticalOpponentId(pub: PublicState, botId: string): string | null {
   return tied[0].id;
 }
 
-type BotProfileName = 'aggressive' | 'controller' | 'conservative' | 'chaotic';
-
 interface BotProfile {
   name: BotProfileName;
   aggression: number; // How much to prioritize attacks when there is a threat
@@ -112,20 +112,47 @@ interface BotProfile {
   chaos: number; // How wide we allow near-ties before picking randomly
 }
 
-function getBotProfile(botName: string, botId: string): BotProfile {
-  const seed = stableHash(`${botName}|${botId}`);
-  const profile = seed % 4;
+const BOT_PROFILES: Record<BotProfileName, BotProfile> = {
+  aggressive: { name: 'aggressive', aggression: 1.25, conserveWild: 0.7, chaos: 0.15 },
+  controller: { name: 'controller', aggression: 1.0, conserveWild: 1.15, chaos: 0.1 },
+  conservative: { name: 'conservative', aggression: 0.8, conserveWild: 1.4, chaos: 0.06 },
+  chaotic: { name: 'chaotic', aggression: 1.05, conserveWild: 0.95, chaos: 0.28 },
+};
 
-  switch (profile) {
-    case 0:
-      return { name: 'aggressive', aggression: 1.25, conserveWild: 0.7, chaos: 0.15 };
-    case 1:
-      return { name: 'controller', aggression: 1.0, conserveWild: 1.15, chaos: 0.1 };
-    case 2:
-      return { name: 'conservative', aggression: 0.8, conserveWild: 1.4, chaos: 0.06 };
-    default:
-      return { name: 'chaotic', aggression: 1.05, conserveWild: 0.95, chaos: 0.28 };
+const DEFAULT_BOT_TUNING: BotTuning = {
+  aggressionMultiplier: 1,
+  conserveWildMultiplier: 1,
+  chaos: 0.1,
+  memoryEnabled: true,
+  targetingEnabled: true,
+  riskAversion: 1,
+  delayMinMs: MIN_DELAY_MS,
+  delayMaxMs: MAX_DELAY_MS,
+};
+
+function getBotProfile(botName: string, botId: string, profileOverride?: BotProfileName): BotProfile {
+  if (profileOverride) {
+    return BOT_PROFILES[profileOverride];
   }
+  const seed = stableHash(`${botName}|${botId}`);
+  const profileIndex = seed % 4;
+  const profileOrder: BotProfileName[] = ['aggressive', 'controller', 'conservative', 'chaotic'];
+  return BOT_PROFILES[profileOrder[profileIndex]];
+}
+
+function resolveBotTuning(profile: BotProfile, tuning?: BotTuning) {
+  const resolved = tuning ?? DEFAULT_BOT_TUNING;
+  return {
+    aggressionMultiplier: resolved.aggressionMultiplier ?? DEFAULT_BOT_TUNING.aggressionMultiplier,
+    conserveWildMultiplier: resolved.conserveWildMultiplier ?? DEFAULT_BOT_TUNING.conserveWildMultiplier,
+    chaos: clamp01(tuning?.chaos ?? profile.chaos),
+    memoryEnabled: resolved.memoryEnabled ?? DEFAULT_BOT_TUNING.memoryEnabled,
+    targetingEnabled: resolved.targetingEnabled ?? DEFAULT_BOT_TUNING.targetingEnabled,
+    riskAversion: resolved.riskAversion ?? DEFAULT_BOT_TUNING.riskAversion,
+    delayMinMs: resolved.delayMinMs ?? DEFAULT_BOT_TUNING.delayMinMs,
+    delayMaxMs: resolved.delayMaxMs ?? DEFAULT_BOT_TUNING.delayMaxMs,
+  };
+}
 }
 
 interface PlayerModel {
@@ -257,6 +284,14 @@ function getRoomMemory(pub: PublicState): RoomMemory {
   return mem;
 }
 
+function createNeutralMemory(pub: PublicState): RoomMemory {
+  const models: Record<string, PlayerModel> = {};
+  for (const p of pub.players) {
+    models[p.id] = { colorScore: makeColorScore(1), wildSuspicion: 0 };
+  }
+  return { lastStateVersion: pub.stateVersion, lastPublic: null, models };
+}
+
 function getLeastLikelyColorForOpponent(model: PlayerModel): PlayableColor {
   const colors: PlayableColor[] = [CardColor.RED, CardColor.GREEN, CardColor.BLUE, CardColor.YELLOW];
   colors.sort((a, b) => model.colorScore[a] - model.colorScore[b]);
@@ -267,12 +302,11 @@ function pickColorAfterWild(
   botHandAfterPlay: Card[],
   pub: PublicState,
   mem: RoomMemory,
-  botId: string
+  criticalId: string | null
 ): PlayableColor {
   const counts = countColors(botHandAfterPlay);
   const dominant = getMostAbundantColorFromCounts(counts);
 
-  const criticalId = getCriticalOpponentId(pub, botId);
   const criticalModel = criticalId ? mem.models[criticalId] : null;
 
   const colors: PlayableColor[] = [CardColor.RED, CardColor.GREEN, CardColor.BLUE, CardColor.YELLOW];
@@ -325,9 +359,15 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
   const { public: pub, players } = state;
   const botPlayer = players[botId];
 
-  // Keep room memory in sync before deciding
-  updateRoomMemoryFromState(state);
-  const mem = getRoomMemory(pub);
+  const profile = getBotProfile(botPlayer.name, botId, botPlayer.profile);
+  const tuning = resolveBotTuning(profile, botPlayer.botTuning);
+  const aggression = profile.aggression * tuning.aggressionMultiplier;
+  const conserveWild = profile.conserveWild * tuning.conserveWildMultiplier;
+
+  const mem = tuning.memoryEnabled ? (() => {
+    updateRoomMemoryFromState(state);
+    return getRoomMemory(pub);
+  })() : createNeutralMemory(pub);
 
   // 1. Basic Validation: Is it my turn?
   if (pub.order[pub.currentPlayerIndex] !== botId) return null;
@@ -335,7 +375,8 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
   // 2. Handle Color Choice (Wild played previously or by bot)
   if (pub.phase === GamePhase.CHOOSE_COLOR_REQUIRED) {
     // Choose color strategically (rule 8)
-    const color = pickColorAfterWild(botPlayer.hand, pub, mem, botId);
+    const criticalId = tuning.targetingEnabled ? getCriticalOpponentId(pub, botId) : null;
+    const color = pickColorAfterWild(botPlayer.hand, pub, mem, criticalId);
     return {
       type: ActionType.CHOOSE_COLOR,
       playerId: botId,
@@ -347,7 +388,7 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
 
   const hand = botPlayer.hand;
   const { pendingDraw } = pub;
-  const profile = getBotProfile(botPlayer.name, botId);
+  const chaos = tuning.chaos;
 
   // 3. Pending Draw Logic (Stacking)
   if (pendingDraw > 0) {
@@ -357,7 +398,7 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
     if (stackingCards.length > 0) {
       // Policy (rule 9): stack if it helps avoid punishment AND ideally punishes the leader.
       // Prefer +2 over +4 unless using +4 is strategically critical (rule 7.2 / 9).
-      const criticalId = getCriticalOpponentId(pub, botId);
+      const criticalId = tuning.targetingEnabled ? getCriticalOpponentId(pub, botId) : null;
       const urgentThreat = pub.players.some(p => p.id !== botId && p.connected && p.cardCount <= 2);
       const nextAfterStack = pub.order[getNextPlayerIndex(pub.currentPlayerIndex, pub.order.length, pub.direction)];
 
@@ -404,7 +445,7 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
   const myDominantBefore = getMostAbundantColorFromCounts(myCountsBefore);
   const myHandCount = hand.length;
 
-  const criticalId = getCriticalOpponentId(pub, botId);
+  const criticalId = tuning.targetingEnabled ? getCriticalOpponentId(pub, botId) : null;
   const criticalCount = criticalId ? (pub.players.find(p => p.id === criticalId)?.cardCount ?? 99) : 99;
   const urgentThreat = pub.players.some(p => p.id !== botId && p.connected && p.cardCount <= 2);
 
@@ -419,7 +460,7 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
     if (card.kind === CardKind.NUMBER) score += 6;
     if (isTempo) score += 3;
     if (isAttack) score += 4;
-    if (isWild) score -= 18 * profile.conserveWild;
+    if (isWild) score -= 18 * conserveWild;
 
     // Compute hand after play
     const handAfterPlay = hand.filter(c => c.id !== card.id);
@@ -445,7 +486,7 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
 
     // Urgency rules (rule 4): if someone has 1–2 cards, prioritize stopping them
     if (urgentThreat && criticalId) {
-      const aggressionBoost = profile.aggression;
+      const aggressionBoost = aggression;
       if (card.kind === CardKind.DRAW_TWO) score += (targetsCritical ? 34 : 12) * aggressionBoost;
       if (card.kind === CardKind.WILD_DRAW_FOUR) score += (targetsCritical ? 44 : 16) * aggressionBoost;
       if (card.kind === CardKind.SKIP) score += (targetsCritical ? 26 : 10) * aggressionBoost;
@@ -472,7 +513,7 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
     // Wild color planning (rule 8): choose a color that continues our hand but is awkward for critical opponent
     let assumedColorAfterPlay: CardColor | null = card.color;
     if (isWild) {
-      const chosen = pickColorAfterWild(handAfterPlay, pub, mem, botId);
+      const chosen = pickColorAfterWild(handAfterPlay, pub, mem, criticalId);
       assumedColorAfterPlay = chosen;
 
       if (criticalId) {
@@ -489,7 +530,7 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
     // Risk management (rule 10): avoid leaving ourselves with no follow-up unless it wins immediately
     if (handAfterPlay.length > 0) {
       const hasFollowUp = willHavePlayableFollowUp(handAfterPlay, assumedColorAfterPlay);
-      if (!hasFollowUp) score -= 12;
+      if (!hasFollowUp) score -= 12 * tuning.riskAversion;
     }
 
     // Micro-optimization: slightly favor shedding duplicates to reduce future block risk
@@ -497,10 +538,10 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
     if (dominantAfter === myDominantBefore) score += 1.5;
 
     // Tiny nudge: when not urgent, avoid spending +4 too early (rule 7.2)
-    if (!urgentThreat && card.kind === CardKind.WILD_DRAW_FOUR && myHandCount > 3) score -= 12 * profile.conserveWild;
+    if (!urgentThreat && card.kind === CardKind.WILD_DRAW_FOUR && myHandCount > 3) score -= 12 * conserveWild;
 
     // If critical opponent is about to win (1 card), be even more aggressive
-    if (criticalCount <= 1 && (isAttack || isTempo)) score += 10 * profile.aggression;
+    if (criticalCount <= 1 && (isAttack || isTempo)) score += 10 * aggression;
 
     return { card, score };
   });
@@ -511,7 +552,7 @@ export function calculateBotMove(state: GameState, botId: string): GameAction | 
   const bestScore = best.score;
 
   // Controlled randomness (rule 13): if close scores, pick among top few based on profile
-  const window = Math.max(1, Math.ceil(validMoves.length * profile.chaos));
+  const window = Math.max(1, Math.ceil(validMoves.length * chaos));
   const threshold = bestScore - 2.25; // near-tie band
   const candidates = scoredMoves
     .slice(0, Math.min(scoredMoves.length, Math.max(2, window)))
