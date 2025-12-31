@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import bg from '@/public/bg-home.webp'
 import { useTexts } from '@/lib/i18n'
+import settingIcon from '@/public/setting.svg'
 
 export default function Home() {
 	const texts = useTexts()
@@ -30,6 +31,15 @@ export default function Home() {
 				/>
 			</div>
 
+			{/* Settings icon - absolute position */}
+			<Link
+				href="/settings"
+				className="absolute top-4 right-4 w-8 h-8 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transform transition hover:scale-110 z-10"
+				aria-label={texts.home.settings}
+			>
+				<Image src={settingIcon.src} alt="Settings" width={18} height={18} />
+			</Link>
+
 			{/* Buttons at the bottom */}
 			<div className="flex flex-col gap-2 w-full max-w-[400px]">
 				<Link
@@ -43,12 +53,6 @@ export default function Home() {
 					className="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-center text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105"
 				>
 					{texts.home.playOnline}
-				</Link>
-				<Link
-					href="/settings"
-					className="px-8 py-4 bg-white/80 hover:bg-white text-center text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105"
-				>
-					{texts.home.settings}
 				</Link>
 			</div>
 		</div>
