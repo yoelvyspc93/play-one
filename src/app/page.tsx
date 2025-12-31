@@ -1,9 +1,13 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
-import { TEXTS } from '../engine/texts'
 import bg from '@/public/bg-home.webp'
+import { useTexts } from '@/lib/i18n'
 
 export default function Home() {
+	const texts = useTexts()
+
 	return (
 		<div
 			className="min-h-dvh flex flex-col items-center justify-center relative p-4"
@@ -32,13 +36,19 @@ export default function Home() {
 					href="/lobby?mode=solo"
 					className="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-center text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105"
 				>
-					{TEXTS.home.playSolo}
+					{texts.home.playSolo}
 				</Link>
 				<Link
 					href="/lobby?mode=online"
 					className="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-center text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105"
 				>
-					{TEXTS.home.playOnline}
+					{texts.home.playOnline}
+				</Link>
+				<Link
+					href="/settings"
+					className="px-8 py-4 bg-white/80 hover:bg-white text-center text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105"
+				>
+					{texts.home.settings}
 				</Link>
 			</div>
 		</div>

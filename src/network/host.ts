@@ -12,6 +12,7 @@ import {
   isValidMove
 } from '../engine';
 import { calculateBotMove, calculateBotDelay } from '../engine/bot';
+import type { BotPlayerConfig } from '../lib/bots';
 import { v4 as uuidv4 } from 'uuid';
 
 const botNames = ['Luna', 'Lucky', 'Atlas', 'Ares', 'Apollo', 'Athena', 'Zeus', 'Hades', 'Gael', 'Zara', 'Nina'];
@@ -25,10 +26,10 @@ export class GameHost {
   private botInterval: NodeJS.Timeout | null = null;
 
 
-  constructor(private hostPlayerName: string) {
+  constructor(private hostNickname: string) {
     this.peerManager = new PeerManager();
     // Initial state with just host
-    this.state = createInitialState(['host'], [hostPlayerName]);
+    this.state = createInitialState(['host'], [hostNickname]);
   }
 
   public async start(customId?: string): Promise<string> {
@@ -47,7 +48,7 @@ export class GameHost {
     // Or just map 'host' -> real ID.
     // Let's re-init for simplicity or update the ID mappings.
     // Re-init:
-    this.state = createInitialState([id], [this.hostPlayerName]);
+    this.state = createInitialState([id], [this.hostNickname]);
     this.state.public.roomId = id; // Sync correct Room ID
 
     return id;
@@ -210,14 +211,14 @@ export class GameHost {
     this.botInterval = setInterval(() => this.processBots(), 1000);
   }
 
-  public addBot() {
+  public addBot(botConfig?: BotPlayerConfig) {
     if (this.state.public.phase !== 'LOBBY') return;
     if (this.state.public.players.length >= 4) {
       console.warn('Cannot add more bots, lobby is full');
       return;
     }
 
-    const botId = `BOT-${uuidv4().slice(0, 4)}`;
+    const botId = botConfig?.id ?? `BOT-${uuidv4().slice(0, 4)}`;
 
     // Pick a random name from the list, trying to avoid duplicates
     const currentBotNames = Object.values(this.state.players).map(p => p.name);
@@ -225,7 +226,7 @@ export class GameHost {
 
     // Fallback to random choice from full list if all are taken
     const sourceList = availableNames.length > 0 ? availableNames : botNames;
-    const botName = sourceList[Math.floor(Math.random() * sourceList.length)];
+    const botName = botConfig?.name ?? sourceList[Math.floor(Math.random() * sourceList.length)];
 
     // Update state manually or via reducer if we had JOIN action (reducer has placeholder).
     // Manual update safest for now.
@@ -233,14 +234,20 @@ export class GameHost {
       id: botId,
       name: botName,
       connected: true,
-      cardCount: 0
+      cardCount: 0,
+      isBot: true,
+      profile: botConfig?.profile,
+      botTuning: botConfig?.botTuning,
     });
     this.state.players[botId] = {
       id: botId,
       name: botName,
       connected: true,
       cardCount: 0,
-      hand: []
+      hand: [],
+      isBot: true,
+      profile: botConfig?.profile,
+      botTuning: botConfig?.botTuning,
     };
     this.state.public.order.push(botId);
     this.bots.add(botId);
@@ -265,7 +272,7 @@ export class GameHost {
 
       const botPlayer = this.state.players[currentPlayerId];
       const cardCount = botPlayer.hand.length;
-      const thinkTime = calculateBotDelay(cardCount);
+      const thinkTime = calculateBotDelay(cardCount, botPlayer.botTuning);
 
       setTimeout(() => {
         try {

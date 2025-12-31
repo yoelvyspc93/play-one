@@ -28,6 +28,22 @@ export interface Player {
   connected: boolean;
   hand: Card[]; // Only for internal state or private hand msg
   cardCount: number; // Derived for public state
+  isBot?: boolean;
+  profile?: BotProfileName;
+  botTuning?: BotTuning;
+}
+
+export type BotProfileName = 'aggressive' | 'controller' | 'conservative' | 'chaotic';
+
+export interface BotTuning {
+  aggressionMultiplier: number;
+  conserveWildMultiplier: number;
+  chaos: number;
+  memoryEnabled: boolean;
+  targetingEnabled: boolean;
+  riskAversion: number;
+  delayMinMs: number;
+  delayMaxMs: number;
 }
 
 export enum GamePhase {

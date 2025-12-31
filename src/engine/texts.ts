@@ -1,4 +1,4 @@
-export const TEXTS = {
+export const TEXTS_ES = {
   app: {
     name: 'PlayOne',
     description: 'Juego de cartas rápido para jugar en línea o en solitario.',
@@ -7,6 +7,9 @@ export const TEXTS = {
   common: {
     youLabel: '(Tú)',
     loading: 'Cargando...',
+    save: 'Guardar',
+    play: 'Jugar',
+    home: 'Ir al inicio',
   },
   home: {
     titleIntro: 'EL JUEGO',
@@ -15,6 +18,7 @@ export const TEXTS = {
       'Disfruta el clásico reimaginado. Juega en solitario contra bots inteligentes o reta a tus amigos por P2P. Sin registro.',
     playOnline: 'JUGAR EN LÍNEA',
     playSolo: 'JUGAR',
+    settings: 'CONFIGURACIONES',
     github: 'GitHub',
   },
   lobby: {
@@ -39,6 +43,24 @@ export const TEXTS = {
       nameAndRoomRequired: 'Nombre e ID de sala requeridos',
       startHost: 'No se pudo iniciar el host',
       startSolo: 'No se pudo iniciar el modo solo',
+    },
+  },
+  settings: {
+    title: 'Configuraciones',
+    subtitle: 'Personaliza tu partida local',
+    nicknameLabel: 'Apodo',
+    nicknamePlaceholder: 'Tu apodo',
+    difficultyLabel: 'Dificultad',
+    languageLabel: 'Idioma',
+    difficultyDescriptions: {
+      EASY: 'Bots relajados, más caóticos y poco agresivos.',
+      NORMAL: 'Bots balanceados con decisiones moderadas.',
+      HARD: 'Bots tácticos, conservan comodines y atacan mejor.',
+      EXPERT: 'Bots muy disciplinados, con memoria y targeting máximo.',
+    },
+    languageOptions: {
+      es: 'Español',
+      en: 'Inglés',
     },
   },
   game: {
@@ -72,3 +94,102 @@ export const TEXTS = {
     restartGame: 'REINICIAR PARTIDA',
   },
 };
+
+export const TEXTS_EN = {
+  app: {
+    name: 'PlayOne',
+    description: 'Fast-paced card game to play online or solo.',
+    cardBackLabel: 'UNO',
+  },
+  common: {
+    youLabel: '(You)',
+    loading: 'Loading...',
+    save: 'Save',
+    play: 'Play',
+    home: 'Go home',
+  },
+  home: {
+    titleIntro: 'THE',
+    titleHighlight: 'ULTIMATE CARD GAME',
+    description:
+      'Enjoy the classic reimagined. Play solo against smart bots or challenge friends via P2P. No registration.',
+    playOnline: 'PLAY ONLINE',
+    playSolo: 'PLAY',
+    settings: 'SETTINGS',
+    github: 'GitHub',
+  },
+  lobby: {
+    lobbyTitle: 'PlayOne Lobby',
+    roomId: 'Room ID',
+    players: 'Players',
+    startGame: 'START',
+    addBot: '+ BOT',
+    minPlayers: 'At least 2 players are required',
+    waitingHost: 'Waiting for host to start...',
+    enterNickname: 'Enter your nickname',
+    roomNameOptional: 'Room name (optional)',
+    createRoom: 'CREATE ROOM',
+    playSolo: 'PLAY SOLO',
+    orJoin: 'OR JOIN',
+    pasteRoomId: 'Paste the room ID',
+    join: 'JOIN',
+    initializingHost: 'Starting host...',
+    connectingHost: 'Connecting to host...',
+    errors: {
+      nameRequired: 'Name is required',
+      nameAndRoomRequired: 'Name and room ID are required',
+      startHost: 'Could not start host',
+      startSolo: 'Could not start solo mode',
+    },
+  },
+  settings: {
+    title: 'Settings',
+    subtitle: 'Customize your local match',
+    nicknameLabel: 'Nickname',
+    nicknamePlaceholder: 'Your nickname',
+    difficultyLabel: 'Difficulty',
+    languageLabel: 'Language',
+    difficultyDescriptions: {
+      EASY: 'Relaxed bots, more chaotic and less aggressive.',
+      NORMAL: 'Balanced bots with moderate decisions.',
+      HARD: 'Tactical bots that conserve wilds and strike well.',
+      EXPERT: 'Highly disciplined bots with strong memory and targeting.',
+    },
+    languageOptions: {
+      es: 'Spanish',
+      en: 'English',
+    },
+  },
+  game: {
+    drawStack: (count: number) => `DRAW ${count}!`,
+    start: 'START',
+    chooseColor: 'Choose the next color',
+    colors: {
+      red: 'RED',
+      green: 'GREEN',
+      blue: 'BLUE',
+      yellow: 'YELLOW',
+    },
+    victory: 'VICTORY!',
+    playAgain: 'PLAY AGAIN',
+    unknownPlayer: 'Unknown',
+    defaultPlayerName: 'Player',
+  },
+  debug: {
+    title: 'Debug engine + bots',
+    defaultPlayers: ['Alicia', 'Beto (Bot)', 'Carlos (Bot)'],
+    botNames: ['Beto', 'Carlos'],
+    enableBot: (name: string) => `Enable bot for ${name}`,
+    publicState: 'Public state',
+    controls: (name: string) => `Controls (Turn: ${name})`,
+    pendingDraw: 'Pending draws',
+    topCard: 'Top card',
+    currentColor: 'Current color',
+    hand: (count: number) => `Hand (${count})`,
+    drawCard: 'DRAW CARD',
+    chooseColor: 'CHOOSE COLOR',
+    restartGame: 'RESTART GAME',
+  },
+};
+
+export const TEXTS = TEXTS_ES;
