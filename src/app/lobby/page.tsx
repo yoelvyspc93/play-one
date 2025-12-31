@@ -10,7 +10,12 @@ import { Input } from '../../components/ui/Input'
 import { Avatar } from '../../components/Avatar'
 import bg from '@/public/bg.webp'
 import { createBots } from '@/lib/bots'
-import { DEFAULT_SETTINGS, GameSettings, loadSettings, saveSettings } from '@/lib/settings'
+import {
+	DEFAULT_SETTINGS,
+	GameSettings,
+	loadSettings,
+	saveSettings,
+} from '@/lib/settings'
 import { useTexts } from '@/lib/i18n'
 
 function LobbyContent() {
@@ -32,6 +37,39 @@ function LobbyContent() {
 		const loaded = loadSettings()
 		setSettings(loaded)
 		if (loaded.nickname) setName(loaded.nickname)
+	}, [])
+
+	// Reload settings when page becomes visible (user returns from settings)
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === 'visible') {
+				const loaded = loadSettings()
+				setSettings(loaded)
+			}
+		}
+
+		const handleStorageChange = (e: StorageEvent) => {
+			if (e.key === 'play-one-settings') {
+				const loaded = loadSettings()
+				setSettings(loaded)
+			}
+		}
+
+		// Also listen for custom storage events (same-tab updates)
+		const handleCustomStorageChange = () => {
+			const loaded = loadSettings()
+			setSettings(loaded)
+		}
+
+		document.addEventListener('visibilitychange', handleVisibilityChange)
+		window.addEventListener('storage', handleStorageChange)
+		window.addEventListener('settingsUpdated', handleCustomStorageChange)
+
+		return () => {
+			document.removeEventListener('visibilitychange', handleVisibilityChange)
+			window.removeEventListener('storage', handleStorageChange)
+			window.removeEventListener('settingsUpdated', handleCustomStorageChange)
+		}
 	}, [])
 
 	// Save name to localStorage when it changes
@@ -116,7 +154,6 @@ function LobbyContent() {
 				setMyHand(h.getMyHand())
 			}, 500)
 			;(window as any).hostInterval = interval
-
 		} catch (e: any) {
 			setError(e.message || texts.lobby.errors.startSolo)
 			setMode('HOME')
@@ -130,8 +167,8 @@ function LobbyContent() {
 	}
 
 	const handleAddBot = () => {
-		if (!host || gameState?.players.length >= 4) return
-		const [bot] = createBots(settings, gameState?.players.length ?? 1, 1)
+		if (!host || !gameState || gameState.players.length >= 4) return
+		const [bot] = createBots(settings, gameState.players.length, 1)
 		if (bot) host.addBot(bot)
 	}
 

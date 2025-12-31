@@ -14,7 +14,7 @@ export class GameClient {
   public onStateUpdate: ((state: PublicState) => void) | null = null;
   public onHandUpdate: ((hand: Card[]) => void) | null = null;
 
-  constructor(private playerName: string) {
+  constructor(private nickname: string) {
     this.peerManager = new PeerManager();
   }
 
@@ -33,7 +33,7 @@ export class GameClient {
         type: MessageType.JOIN,
         roomId: hostId,
         senderId: this.peerManager.myId,
-        payload: { name: this.playerName }
+        payload: { name: this.nickname }
       });
     });
 

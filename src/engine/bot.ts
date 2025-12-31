@@ -153,7 +153,6 @@ function resolveBotTuning(profile: BotProfile, tuning?: BotTuning) {
     delayMaxMs: resolved.delayMaxMs ?? DEFAULT_BOT_TUNING.delayMaxMs,
   };
 }
-}
 
 interface PlayerModel {
   colorScore: ColorScore; // Higher means more likely they can follow that color

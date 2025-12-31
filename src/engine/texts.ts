@@ -9,6 +9,7 @@ export const TEXTS_ES = {
     loading: 'Cargando...',
     save: 'Guardar',
     play: 'Jugar',
+    home: 'Ir al inicio',
   },
   home: {
     titleIntro: 'EL JUEGO',
@@ -47,7 +48,6 @@ export const TEXTS_ES = {
   settings: {
     title: 'Configuraciones',
     subtitle: 'Personaliza tu partida local',
-    playerNameLabel: 'Nombre del jugador',
     nicknameLabel: 'Apodo',
     nicknamePlaceholder: 'Tu apodo',
     difficultyLabel: 'Dificultad',
@@ -106,6 +106,7 @@ export const TEXTS_EN = {
     loading: 'Loading...',
     save: 'Save',
     play: 'Play',
+    home: 'Go home',
   },
   home: {
     titleIntro: 'THE',
@@ -144,7 +145,6 @@ export const TEXTS_EN = {
   settings: {
     title: 'Settings',
     subtitle: 'Customize your local match',
-    playerNameLabel: 'Player name',
     nicknameLabel: 'Nickname',
     nicknamePlaceholder: 'Your nickname',
     difficultyLabel: 'Difficulty',

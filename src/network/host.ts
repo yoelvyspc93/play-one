@@ -26,10 +26,10 @@ export class GameHost {
   private botInterval: NodeJS.Timeout | null = null;
 
 
-  constructor(private hostPlayerName: string) {
+  constructor(private hostNickname: string) {
     this.peerManager = new PeerManager();
     // Initial state with just host
-    this.state = createInitialState(['host'], [hostPlayerName]);
+    this.state = createInitialState(['host'], [hostNickname]);
   }
 
   public async start(customId?: string): Promise<string> {
@@ -48,7 +48,7 @@ export class GameHost {
     // Or just map 'host' -> real ID.
     // Let's re-init for simplicity or update the ID mappings.
     // Re-init:
-    this.state = createInitialState([id], [this.hostPlayerName]);
+    this.state = createInitialState([id], [this.hostNickname]);
     this.state.public.roomId = id; // Sync correct Room ID
 
     return id;

@@ -3,14 +3,12 @@ export type GameLanguage = 'es' | 'en';
 
 export interface GameSettings {
   difficulty: GameDifficulty;
-  playerName: string;
   nickname: string;
   language: GameLanguage;
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
   difficulty: 'NORMAL',
-  playerName: '',
   nickname: '',
   language: 'es',
 };
@@ -26,14 +24,13 @@ export function loadSettings(): GameSettings {
   const raw = localStorage.getItem(SETTINGS_KEY);
   if (!raw) {
     const legacyName = localStorage.getItem(LEGACY_NAME_KEY) ?? '';
-    return { ...DEFAULT_SETTINGS, playerName: legacyName, nickname: legacyName };
+    return { ...DEFAULT_SETTINGS, nickname: legacyName };
   }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<GameSettings>;
+    const parsed = JSON.parse(raw) as Partial<GameSettings & { playerName?: string }>;
     return {
       difficulty: parsed.difficulty ?? DEFAULT_SETTINGS.difficulty,
-      playerName: parsed.playerName ?? DEFAULT_SETTINGS.playerName,
       nickname: parsed.nickname ?? parsed.playerName ?? DEFAULT_SETTINGS.nickname,
       language: parsed.language ?? DEFAULT_SETTINGS.language,
     };
@@ -48,5 +45,6 @@ export function saveSettings(settings: GameSettings) {
     ...settings,
   };
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
-  localStorage.setItem(LEGACY_NAME_KEY, next.nickname || next.playerName);
+  // Dispatch custom event to notify other components in the same tab
+  window.dispatchEvent(new CustomEvent('settingsUpdated'));
 }
