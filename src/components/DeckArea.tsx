@@ -27,9 +27,12 @@ export function DeckArea({
 	const texts = useTexts()
 
 	return (
-		<div className="relative flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-12">
+		<div className="relative flex items-center justify-center gap-6 md:gap-10">
 			{/* Deck */}
 			<div className="relative group">
+				<div className="absolute -top-2 -left-2 w-20 h-32 md:w-24 md:h-36 rounded-xl bg-black/20 blur-[2px]" />
+				<div className="absolute top-1 left-1 -z-10 w-20 h-32 md:w-24 md:h-36 rounded-xl bg-black/35" />
+				<div className="absolute top-2 left-2 -z-20 w-20 h-32 md:w-24 md:h-36 rounded-xl bg-black/25" />
 				<Card
 					hidden
 					card={{} as any}
@@ -38,7 +41,6 @@ export function DeckArea({
 					}}
 					className="w-20 h-32 md:w-24 md:h-36 cursor-pointer shadow-2xl transform transition-transform group-hover:scale-[1.04] group-active:scale-[0.98]"
 				/>
-				<div className="absolute top-1 left-1 -z-10 w-full h-full bg-black/35 rounded-xl" />
 
 				{isMyTurn &&
 					(pendingDraw > 0 ? (
@@ -72,11 +74,29 @@ export function DeckArea({
 							transition={{ type: 'spring', stiffness: 280, damping: 22 }}
 							className="relative z-10"
 						>
-							<Card
-								card={topCard}
-								activeColor={currentColor}
-								className="w-20 h-32 md:w-24 md:h-36 shadow-2xl"
-							/>
+							<div className="relative w-20 h-32 md:w-24 md:h-36">
+								{[
+									{ rotate: -10, x: -10, y: 6, opacity: 0.5 },
+									{ rotate: 6, x: 10, y: 10, opacity: 0.7 },
+									{ rotate: 0, x: 0, y: 0, opacity: 1 },
+								].map((style, index) => (
+									<div
+										key={`discard-${index}`}
+										className="absolute inset-0"
+										style={{
+											transform: `translate(${style.x}px, ${style.y}px) rotate(${style.rotate}deg)`,
+											opacity: style.opacity,
+										}}
+									>
+										<Card
+											card={topCard}
+											activeColor={currentColor}
+											hoverable={false}
+											className="w-20 h-32 md:w-24 md:h-36 shadow-2xl"
+										/>
+									</div>
+								))}
+							</div>
 						</motion.div>
 					) : (
 						<div className="w-16 h-24 md:w-24 md:h-36 border-4 border-dashed border-white/20 rounded-xl flex items-center justify-center text-white/20 font-black">

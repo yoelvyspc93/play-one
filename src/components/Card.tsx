@@ -41,13 +41,14 @@ function CardBack({ onClick, hoverable, className, style }: any) {
 			onClick={onClick}
 			whileHover={onClick && hoverable ? { scale: 1.05 } : {}}
 			className={clsx(
-				'relative rounded-xl border-4 border-white shadow-xl bg-black flex items-center justify-center relative overflow-hidden',
+				'relative rounded-2xl border-[3px] border-white shadow-xl bg-black flex items-center justify-center overflow-hidden',
 				className || 'w-20 h-32 md:w-24 md:h-36'
 			)}
 			style={style}
 		>
-			<div className="absolute inset-1 bg-gradient-to-br from-red-800 to-red-900 rounded-full transform -skew-x-10 flex items-center justify-center shadow-inner transform rotate-[25deg]" />
-			<span className="absolute text-white font-black text-xl md:text-1xl transform -rotate-[52deg] italic tracking-tighter">
+			<div className="absolute inset-2 rounded-full bg-gradient-to-br from-red-600 to-red-800 shadow-inner transform rotate-[20deg]" />
+			<div className="absolute inset-5 rounded-full bg-black/60 border border-white/15 transform rotate-[20deg]" />
+			<span className="absolute text-yellow-300 font-black text-xl md:text-2xl transform -rotate-[22deg] italic tracking-tight drop-shadow-lg">
 				{texts.app.cardBackLabel}
 			</span>
 		</motion.div>
