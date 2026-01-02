@@ -39,11 +39,11 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 
 	return (
 		<div
-			className="flex justify-center items-end h-28 md:h-40 w-full"
+			className="flex justify-center items-end h-32 md:h-44 w-full"
 			onClick={() => setSelectedCardId(null)}
 		>
 			<div
-				className="relative flex items-center w-full max-w-2xl justify-center"
+				className="relative flex items-center w-full max-w-4xl justify-center"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<AnimatePresence>
@@ -51,14 +51,15 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 						// Responsive overlapping
 						const overlap =
 							cards.length > 12
-								? '-ml-12 md:-ml-16'
-								: cards.length > 6
 								? '-ml-10 md:-ml-12'
-								: '-ml-4 md:-ml-8'
+								: cards.length > 6
+								? '-ml-8 md:-ml-10'
+								: '-ml-2 md:-ml-6'
 
 						const isPlayable = active && isValidMove(card, state, cards)
 						const isSelected = selectedCardId === card.id
-						const rotation = (index - cards.length / 2) * 2
+						const rotation = (index - cards.length / 2) * 1.5
+						const lift = Math.abs(index - cards.length / 2) * -1.5
 
 						return (
 							<motion.div
@@ -71,8 +72,8 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 											? -50
 											: -80
 										: isPlayable
-										? -20
-										: 0,
+										? -24 + lift
+										: lift,
 									opacity: 1,
 									rotate: isSelected ? 0 : rotation,
 									scale: isSelected
@@ -80,37 +81,38 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 											? 1.15
 											: 1.2
 										: isPlayable
-										? 1.05
+										? 1.06
 										: 1,
-									zIndex: isSelected ? 100 : index,
 								}}
 								whileHover={
 									isPlayable && !isSelected
 										? {
-												y: -50,
-												scale: 1.1,
-												zIndex: 100,
+												y: -60,
+												scale: 1.08,
 												transition: { duration: 0.2 },
 										  }
 										: {}
 								}
 								exit={{ y: 100, opacity: 0 }}
 								transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-								className={`relative -bottom-14 ${index > 0 ? overlap : ''}`}
+								className={`relative -bottom-14 md:-bottom-12 ${
+									index > 0 ? overlap : ''
+								}`}
 							>
 								<Card
 									card={card}
 									onClick={() => handleCardClick(card)}
 									disabled={!isPlayable}
 									hoverable={false}
+									size="lg"
 									className={clsx(
-										'w-20 h-32 md:w-24 md:h-36 transition-shadow shadow-xl'
+										'transition-shadow shadow-xl'
 									)}
 								/>
 								{isPlayable && (
 									<motion.div
 										layoutId={`glow-${card.id}`}
-										className="absolute inset-0 bg-yellow-400/10 blur-xl -z-10 rounded-xl"
+										className="absolute inset-0 bg-yellow-400/15 blur-xl -z-10 rounded-xl"
 										animate={{ opacity: [0.3, 0.6, 0.3] }}
 										transition={{ duration: 2, repeat: Infinity }}
 									/>

@@ -37,6 +37,7 @@ function createInitialState(playerIds: string[], playerNames: string[]): GameSta
     currentPlayerIndex: 0,
     direction: 1,
     topCard: null,
+    lastPlayedCards: [],
     currentColor: null,
     pendingDraw: 0,
     phase: GamePhase.LOBBY,
@@ -111,6 +112,7 @@ function applyPlayCard(state: GameState, playerId: string, cardIndex: number) {
 
   // Update Top Card
   state.public.topCard = card;
+  state.public.lastPlayedCards = [...state.public.lastPlayedCards, card].slice(-5);
   state.public.currentColor = card.color; // Might be WILD initially, requires choice
 
   // Check Win Condition
@@ -199,6 +201,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       if (top) {
         nextState.public.topCard = top;
+        nextState.public.lastPlayedCards = [top];
         nextState.public.currentColor = top.color;
 
         // Apply effects (Skip, Reverse, Draw2)
