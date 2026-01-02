@@ -71,10 +71,6 @@ export function GameBoard({
 			<div className="relative h-full w-full">
 				<div className="absolute inset-0 flex items-center justify-center">
 					<div className="relative w-[90vw] max-w-[1200px] h-[65vw] max-h-[560px]">
-						<div className="absolute inset-0 rounded-[999px] bg-[#f3e2c9]/90 blur-[1px]" />
-						<div className="absolute inset-6 rounded-[999px] bg-gradient-to-br from-sky-300 via-sky-400 to-sky-600 border-[10px] border-white/90 shadow-2xl" />
-						<div className="absolute inset-8 rounded-[999px] bg-gradient-to-br from-sky-300 via-sky-400 to-sky-600" />
-
 						{/* DeckArea - centered on table */}
 						<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
 							<div className="pointer-events-auto">
