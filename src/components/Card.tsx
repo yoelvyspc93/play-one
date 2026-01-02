@@ -5,6 +5,8 @@ import { Card as CardType, CardColor, CardKind } from '../engine'
 import { clsx } from 'clsx'
 import { useTexts } from '@/lib/i18n'
 
+export type CardSize = 'sm' | 'md' | 'lg'
+
 interface CardProps {
 	card: CardType
 	onClick?: () => void
@@ -14,6 +16,7 @@ interface CardProps {
 	style?: React.CSSProperties
 	activeColor?: CardColor | null
 	hoverable?: boolean
+	size?: CardSize
 }
 
 const colorStyles = {
@@ -32,8 +35,55 @@ const textStyles = {
 	[CardColor.WILD]: 'text-white',
 }
 
-function CardBack({ onClick, hoverable, className, style }: any) {
+// Configuration for card sizes
+const sizeConfig = {
+	sm: {
+		dimensions: 'w-10 md:w-10', // Small for opponents
+		cornerText: 'text-[0.6rem]',
+		centerText: 'text-xl',
+		iconSize: 'text-lg',
+		wildGrid: 'gap-0.5',
+		wildPip: 'w-1.5 h-2.5',
+		backLabel: 'text-[0.6rem] md:text-xs',
+		border: 'border-2',
+	},
+	md: {
+		dimensions: 'w-16 md:w-20', // Medium for deck/discard
+		cornerText: 'text-xs',
+		centerText: 'text-3xl md:text-4xl',
+		iconSize: 'text-2xl',
+		wildGrid: 'gap-1',
+		wildPip: 'w-2.5 h-4',
+		backLabel: 'text-sm md:text-base',
+		border: 'border-[3px]',
+	},
+	lg: {
+		dimensions: 'w-18 md:w-28', // Large for hand
+		cornerText: 'text-sm md:text-base',
+		centerText: 'text-5xl md:text-7xl',
+		iconSize: 'text-4xl',
+		wildGrid: 'gap-1',
+		wildPip: 'w-3 h-5',
+		backLabel: 'text-xl md:text-2xl',
+		border: 'border-4',
+	},
+}
+
+function CardBack({
+	onClick,
+	hoverable,
+	className,
+	style,
+	size = 'md',
+}: {
+	onClick?: () => void
+	hoverable?: boolean
+	className?: string
+	style?: React.CSSProperties
+	size?: CardSize
+}) {
 	const texts = useTexts()
+	const config = sizeConfig[size]
 
 	return (
 		<motion.div
@@ -41,21 +91,37 @@ function CardBack({ onClick, hoverable, className, style }: any) {
 			onClick={onClick}
 			whileHover={onClick && hoverable ? { scale: 1.05 } : {}}
 			className={clsx(
-				'relative rounded-2xl border-[3px] border-white shadow-xl bg-black flex items-center justify-center overflow-hidden',
-				className || 'w-20 h-32 md:w-24 md:h-36'
+				'relative rounded-xl shadow-xl bg-black flex items-center justify-center overflow-hidden aspect-[5/7]',
+				config.dimensions,
+				config.border,
+				'border-white',
+				className
 			)}
 			style={style}
 		>
-			<div className="absolute inset-2 rounded-full bg-gradient-to-br from-red-600 to-red-800 shadow-inner transform rotate-[20deg]" />
-			<div className="absolute inset-5 rounded-full bg-black/60 border border-white/15 transform rotate-[20deg]" />
-			<span className="absolute text-yellow-300 font-black text-xl md:text-2xl transform -rotate-[22deg] italic tracking-tight drop-shadow-lg">
+			<div className="absolute inset-1 rounded-full bg-gradient-to-br from-red-600 to-red-800 shadow-inner transform rotate-[20deg]" />
+			<div className="absolute inset-3 rounded-full bg-black/60 border border-white/15 transform rotate-[20deg]" />
+			<span
+				className={clsx(
+					'absolute text-yellow-300 font-black transform -rotate-[22deg] italic tracking-tight drop-shadow-lg',
+					config.backLabel
+				)}
+			>
 				{texts.app.cardBackLabel}
 			</span>
 		</motion.div>
 	)
 }
 
-function CornerMark({ kind, number }: { kind: CardKind; number?: number }) {
+function CornerMark({
+	kind,
+	number,
+	size,
+}: {
+	kind: CardKind
+	number?: number
+	size: CardSize
+}) {
 	const content =
 		kind === CardKind.NUMBER
 			? number
@@ -66,18 +132,36 @@ function CornerMark({ kind, number }: { kind: CardKind; number?: number }) {
 					[CardKind.WILD]: 'W',
 					[CardKind.WILD_DRAW_FOUR]: '+4',
 			  }[kind]
-	return <span className="font-bold text-sm italic">{content}</span>
+	return (
+		<span className={clsx('font-bold italic', sizeConfig[size].cornerText)}>
+			{content}
+		</span>
+	)
 }
 
-function CardContent({ kind, number }: { kind: CardKind; number?: number }) {
+function CardContent({
+	kind,
+	number,
+	size,
+}: {
+	kind: CardKind
+	number?: number
+	size: CardSize
+}) {
+	const config = sizeConfig[size]
+
 	if (kind === CardKind.WILD_DRAW_FOUR)
 		return (
-			<div className="grid grid-cols-2 gap-1">
+			<div className={clsx('grid grid-cols-2', config.wildGrid)}>
 				{[CardColor.RED, CardColor.BLUE, CardColor.GREEN, CardColor.YELLOW].map(
 					(c) => (
 						<div
 							key={c}
-							className={clsx('w-3 h-5 rounded-sm shadow-sm', colorStyles[c])}
+							className={clsx(
+								'rounded-sm shadow-sm',
+								colorStyles[c],
+								config.wildPip
+							)}
 						/>
 					)
 				)}
@@ -86,37 +170,43 @@ function CardContent({ kind, number }: { kind: CardKind; number?: number }) {
 	if (kind === CardKind.WILD)
 		return (
 			<div
-				className="w-12 h-12 rounded-full border-4 border-white shadow-lg"
+				className={clsx(
+					'rounded-full border-2 border-white shadow-lg',
+					size === 'sm' ? 'w-6 h-6' : size === 'md' ? 'w-10 h-10' : 'w-12 h-12'
+				)}
 				style={{ background: 'conic-gradient(red, yellow, green, blue, red)' }}
 			/>
 		)
 	if (kind === CardKind.NUMBER)
 		return (
-			<span className="text-5xl md:text-7xl font-bold italic tracking-tighter">
+			<span className={clsx('font-bold italic tracking-tighter', config.centerText)}>
 				{number}
 			</span>
 		)
-	if (kind === CardKind.SKIP)
-		return <span className="text-4xl font-bold">⊘</span>
-	if (kind === CardKind.REVERSE)
-		return <span className="text-4xl font-bold">⇄</span>
-	if (kind === CardKind.DRAW_TWO)
-		return (
-			<div className="flex flex-col items-center">
-				{['+2', '+2'].map((t, i) => (
-					<div
-						key={i}
-						className={clsx(
-							'text-4xl border-2 border-current rounded px-1',
-							i === 0 && '-mb-4 rotate-12'
-						)}
-					>
-						{t}
-					</div>
-				))}
-			</div>
-		)
-	return null
+	
+	// Icons for special cards
+	return (
+		<span className={clsx('font-bold', config.iconSize)}>
+			{kind === CardKind.SKIP && '⊘'}
+			{kind === CardKind.REVERSE && '⇄'}
+			{kind === CardKind.DRAW_TWO && (
+				<div className="flex flex-col items-center">
+					{['+2', '+2'].map((t, i) => (
+						<div
+							key={i}
+							className={clsx(
+								'border-2 border-current rounded px-0.5 leading-none',
+								size === 'sm' ? 'text-[0.6rem]' : size === 'md' ? 'text-lg' : 'text-2xl',
+								i === 0 && '-mb-2 rotate-12 bg-inherit z-10'
+							)}
+						>
+							{t}
+						</div>
+					))}
+				</div>
+			)}
+		</span>
+	)
 }
 
 export function Card({
@@ -128,6 +218,7 @@ export function Card({
 	style,
 	activeColor,
 	hoverable = true,
+	size = 'md',
 }: CardProps) {
 	if (hidden)
 		return (
@@ -136,13 +227,18 @@ export function Card({
 				hoverable={hoverable}
 				className={className}
 				style={style}
+				size={size}
 			/>
 		)
+	
+	const config = sizeConfig[size]
+
 	const baseColor =
 		(card.kind === CardKind.WILD || card.kind === CardKind.WILD_DRAW_FOUR) &&
 		activeColor
 			? activeColor
 			: card.color || CardColor.WILD
+	
 	return (
 		<motion.div
 			layout
@@ -152,30 +248,33 @@ export function Card({
 			}
 			whileTap={!disabled && hoverable ? { scale: 0.95 } : {}}
 			className={clsx(
-				'relative rounded-xl shadow-md border-4 border-white select-none overflow-hidden bg-gradient-to-br',
+				'relative rounded-xl shadow-md select-none overflow-hidden bg-gradient-to-br aspect-[5/7]',
+				config.dimensions,
+				config.border,
 				colorStyles[baseColor],
 				textStyles[baseColor],
 				!disabled && 'cursor-pointer',
-				className || 'w-20 h-32 md:w-24 md:h-36'
+				'border-white',
+				className
 			)}
 			style={style}
 		>
 			<div className="absolute inset-2 rounded-full bg-white opacity-20 transform -skew-x-12" />
-			<div className="absolute top-1 left-1.5 leading-none">
-				<CornerMark kind={card.kind} number={card.number} />
+			<div className={clsx("absolute leading-none", size === 'sm' ? 'top-0.5 left-1' : 'top-1 left-1.5')}>
+				<CornerMark kind={card.kind} number={card.number} size={size} />
 			</div>
-			<div className="absolute bottom-1 right-1.5 leading-none transform rotate-180">
-				<CornerMark kind={card.kind} number={card.number} />
+			<div className={clsx("absolute leading-none transform rotate-180", size === 'sm' ? 'bottom-0.5 right-1' : 'bottom-1 right-1.5')}>
+				<CornerMark kind={card.kind} number={card.number} size={size} />
 			</div>
 			<div
 				className={clsx(
 					'absolute inset-0 flex items-center justify-center',
 					card.kind !== CardKind.WILD &&
 						card.kind !== CardKind.WILD_DRAW_FOUR &&
-						'-left-2'
+						(size === 'sm' ? '-left-1' : '-left-2')
 				)}
 			>
-				<CardContent kind={card.kind} number={card.number} />
+				<CardContent kind={card.kind} number={card.number} size={size} />
 			</div>
 		</motion.div>
 	)

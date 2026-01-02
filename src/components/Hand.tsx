@@ -95,7 +95,7 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 								}
 								exit={{ y: 100, opacity: 0 }}
 								transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-								className={`relative -bottom-10 md:-bottom-12 ${
+								className={`relative -bottom-14 md:-bottom-12 ${
 									index > 0 ? overlap : ''
 								}`}
 							>
@@ -104,8 +104,9 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 									onClick={() => handleCardClick(card)}
 									disabled={!isPlayable}
 									hoverable={false}
+									size="lg"
 									className={clsx(
-										'w-24 h-36 md:w-28 md:h-40 transition-shadow shadow-xl'
+										'transition-shadow shadow-xl'
 									)}
 								/>
 								{isPlayable && (

@@ -41,16 +41,16 @@ export default function Home() {
 			</Link>
 
 			{/* Buttons at the bottom */}
-			<div className="flex flex-col gap-2 w-full max-w-[400px]">
+			<div className="flex flex-row gap-2 w-full max-w-[400px]">
 				<Link
 					href="/lobby?mode=solo"
-					className="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-center text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105"
+					className="flex-1 px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-center text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105"
 				>
 					{texts.home.playSolo}
 				</Link>
 				<Link
 					href="/lobby?mode=online"
-					className="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-center text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105"
+					className="flex-1 px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-center text-black font-bold text-xl rounded-2xl shadow-lg transform transition hover:scale-105"
 				>
 					{texts.home.playOnline}
 				</Link>

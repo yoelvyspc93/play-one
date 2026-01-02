@@ -22,27 +22,24 @@ export function Opponent({
 		return (index - center) * (spread / visibleCards)
 	})
 
-	const positionStyles = {
+const positionStyles = {
 		top: {
-			wrapper: 'flex-col gap-4',
+			wrapper: 'flex-row gap-8',
 			cards: 'flex-row',
-			cardClass: 'w-16 h-24 md:w-20 md:h-28',
 			rotation: 'rotate-0',
 			overlap: '-ml-6 md:-ml-8',
 		},
 		left: {
-			wrapper: 'flex-row gap-3',
+			wrapper: 'flex-col gap-2',
 			cards: 'flex-row',
-			cardClass: 'w-14 h-20 md:w-16 md:h-24',
-			rotation: '-rotate-6',
+			rotation: '-rotate-12',
 			overlap: '-ml-6 md:-ml-8',
 		},
 		right: {
-			wrapper: 'flex-row-reverse gap-3',
-			cards: 'flex-row-reverse',
-			cardClass: 'w-14 h-20 md:w-16 md:h-24',
-			rotation: 'rotate-6',
-			overlap: '-mr-6 md:-mr-8',
+			wrapper: 'flex-col gap-2',
+			cards: 'flex-row',
+			rotation: 'rotate-12',
+			overlap: '-ml-6 md:-ml-8',
 		},
 	}[position]
 
@@ -84,9 +81,9 @@ export function Opponent({
 								hidden
 								hoverable={false}
 								card={{} as any}
+								size="sm"
 								className={clsx(
-									'shadow-xl border-2 border-white/80',
-									positionStyles.cardClass
+									'shadow-xl border-2 border-white/80'
 								)}
 							/>
 						</div>

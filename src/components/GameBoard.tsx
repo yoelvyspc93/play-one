@@ -91,7 +91,7 @@ export function GameBoard({
 					</div>
 				</div>
 
-				<div className="absolute top-[6%] left-1/2 -translate-x-1/2">
+				<div className="absolute top-[2%] left-1/2 -translate-x-1/2">
 					{playersAtPos[2] && (
 						<Opponent
 							player={playersAtPos[2]}
@@ -101,7 +101,7 @@ export function GameBoard({
 					)}
 				</div>
 
-				<div className="absolute left-[6%] top-1/2 -translate-y-1/2">
+				<div className="absolute left-[4%] top-1/2 -translate-y-1/2">
 					{playersAtPos[3] && (
 						<Opponent
 							player={playersAtPos[3]}
@@ -111,7 +111,7 @@ export function GameBoard({
 					)}
 				</div>
 
-				<div className="absolute right-[6%] top-1/2 -translate-y-1/2">
+				<div className="absolute right-[4%] top-1/2 -translate-y-1/2">
 					{playersAtPos[1] && (
 						<Opponent
 							player={playersAtPos[1]}

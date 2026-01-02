@@ -16,7 +16,7 @@ export const TEXTS_ES = {
     titleHighlight: 'DE CARTAS DEFINITIVO',
     description:
       'Disfruta el clásico reimaginado. Juega en solitario contra bots inteligentes o reta a tus amigos por P2P. Sin registro.',
-    playOnline: 'JUGAR EN LÍNEA',
+    playOnline: 'EN LÍNEA',
     playSolo: 'JUGAR',
     settings: 'CONFIGURACIONES',
     github: 'GitHub',
@@ -113,7 +113,7 @@ export const TEXTS_EN = {
     titleHighlight: 'ULTIMATE CARD GAME',
     description:
       'Enjoy the classic reimagined. Play solo against smart bots or challenge friends via P2P. No registration.',
-    playOnline: 'PLAY ONLINE',
+    playOnline: 'ONLINE',
     playSolo: 'PLAY',
     settings: 'SETTINGS',
     github: 'GitHub',

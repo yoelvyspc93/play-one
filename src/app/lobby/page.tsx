@@ -246,7 +246,7 @@ function LobbyContent() {
 								return (
 									<li
 										key={p.id}
-										className="flex justify-between items-center bg-white/10 backdrop-blur-lg p-4 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20 border border-white/5"
+										className="flex justify-between items-center bg-white/10 backdrop-blur-lg p-2 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20 border border-white/5"
 									>
 										<div className="flex items-center gap-3">
 											<Avatar name={p.name} size="sm" />

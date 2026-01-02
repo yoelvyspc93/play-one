@@ -48,36 +48,34 @@ export function DeckArea({
 		}
 		
 		// Generate random positions between -10deg and +10deg, -8px and +8px
-		const rotate = (hash % 180) - 7; 
-		const x = (hash % 10) - 5;       
-		const y = ((hash >> 1) % 10) - 5;
+		const rotate = (hash % 20) - 2; 
+		const x = (hash % 4) - 1;       
+		const y = ((hash >> 1) % 4) - 4;
 		
 		return { rotate, x, y };
 	}
 
 	return (
-		<div className="relative flex items-center justify-center gap-20 md:gap-40">
+		<div className="relative flex items-center justify-center gap-10 md:gap-20 -top-5 [transform:perspective(800px)_rotateX(40deg)] [transform-style:preserve-3d]">
 			{/* Deck */}
-			<div className="relative group">
-				<div className="absolute -top-2 -left-2 w-20 h-32 md:w-24 md:h-36 rounded-xl bg-black/20 blur-[2px]" />
-				<div className="absolute top-1 left-1 -z-10 w-20 h-32 md:w-24 md:h-36 rounded-xl bg-black/35" />
-				<div className="absolute top-2 left-2 -z-20 w-20 h-32 md:w-24 md:h-36 rounded-xl bg-black/25" />
+			<div className="relative group -top-5">
 				<Card
 					hidden
 					card={{} as any}
 					onClick={() => {
 						if (isMyTurn) onDraw()
 					}}
-					className="w-20 h-32 md:w-24 md:h-36 cursor-pointer shadow-2xl transform transition-transform group-hover:scale-[1.04] group-active:scale-[0.98]"
+					size="md"
+					className="cursor-pointer shadow-xl transform transition-transform group-hover:scale-[1.04] group-active:scale-[0.98]"
 				/>
 
 				{isMyTurn &&
 					(pendingDraw > 0 ? (
-						<div className="absolute -top-9 left-1/2 -translate-x-1/2 w-max bg-red-600 text-white font-black text-xs md:text-sm rounded-full px-4 py-1.5 shadow-lg ring-2 ring-white/80 animate-bounce z-50">
+						<div className="absolute -top-9 left-1/2 -translate-x-1/2 w-max bg-red-600 text-white font-black text-xs md:text-sm rounded-full px-4 py-1.5 shadow-lg ring-2 ring-white/80 animate-bounce z-50 [transform:rotateX(-40deg)] origin-bottom">
 							{texts.game.drawStack(pendingDraw)}
 						</div>
 					) : !canPlay ? (
-						<div className="absolute -top-12 left-1/2 -translate-x-1/2 w-max flex flex-col items-center gap-1 z-50">
+						<div className="absolute -top-12 left-1/2 -translate-x-1/2 w-max flex flex-col items-center gap-1 z-50 [transform:rotateX(-40deg)] origin-bottom">
 							<div className="bg-yellow-500 text-black font-black text-xs md:text-sm rounded-full px-4 py-1.5 shadow-lg ring-2 ring-white animate-bounce">
 								{texts.game.drawStack(1)}
 							</div>
@@ -87,7 +85,7 @@ export function DeckArea({
 			</div>
 
 			{/* Discard */}
-			<div className="relative w-20 h-32 md:w-24 md:h-36">
+			<div className="relative w-14 md:w-20 aspect-[5/7]">
 				{displayCards.length > 0 ? (
 					<AnimatePresence mode="popLayout">
 						{displayCards.map((card, index) => {
@@ -101,10 +99,10 @@ export function DeckArea({
 									className="absolute inset-0"
 									style={{ zIndex: index }}
 									initial={isTop ? {
-										scale: 1.2,
+										scale: 1,
 										opacity: 0,
 										rotate: direction * 45, // Fly in with rotation
-										y: -60,
+										y: 0,
 									} : { opacity: 0 }}
 									animate={{ 
 										scale: 1, 
@@ -113,7 +111,7 @@ export function DeckArea({
 										x: style.x,
 										y: style.y
 									}}
-									exit={{ opacity: 0, scale: 0.9 }}
+									exit={{ opacity: 0, scale: 1 }}
 									transition={{ type: 'spring', stiffness: 260, damping: 20 }}
 								>
 									<Card
@@ -128,14 +126,14 @@ export function DeckArea({
 										// If I pass 'currentColor', all Wilds in stack show CURRENT game color.
 										// This is acceptable.
 										hoverable={false}
-										className="w-20 h-32 md:w-24 md:h-36 shadow-2xl"
+										size="md"
 									/>
 								</motion.div>
 							)
 						})}
 					</AnimatePresence>
 				) : (
-					<div className="w-16 h-24 md:w-24 md:h-36 border-4 border-dashed border-white/20 rounded-xl flex items-center justify-center text-white/20 font-black">
+					<div className="w-14 md:w-20 aspect-[5/7] border-4 border-dashed border-white/20 rounded-xl flex items-center justify-center text-white/20 font-black">
 						{texts.game.start}
 					</div>
 				)}
