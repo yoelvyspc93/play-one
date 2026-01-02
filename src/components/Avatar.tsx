@@ -64,7 +64,7 @@ export function Avatar({
 					/>
 
 					{count !== undefined && (
-						<div className="absolute -bottom-2 -right-2 bg-white/90 border-2 border-yellow-200 text-slate-800 text-[10px] font-black w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
+						<div className="absolute -bottom-2 -right-2 bg-white/90 border-2 border-yellow-200 text-slate-800 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg">
 							{count}
 						</div>
 					)}
@@ -78,7 +78,7 @@ export function Avatar({
 			</div>
 
 			{showName && (
-				<div className="mt-2 text-white font-semibold bg-white/20 backdrop-blur-lg px-3 py-1 rounded-full border border-white/40 text-[10px] md:text-xs tracking-wide shadow-md whitespace-nowrap">
+				<div className="mt-2 text-white font-semibold bg-white/20 backdrop-blur-lg px-2 py-1 rounded-full border border-white/40 text-[10px] md:text-xs tracking-wide shadow-md whitespace-nowrap">
 					{name}
 				</div>
 			)}

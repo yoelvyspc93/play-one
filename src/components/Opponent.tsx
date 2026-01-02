@@ -57,7 +57,7 @@ export function Opponent({
 				<Avatar
 					name={name}
 					showName
-					size="lg"
+					size="sm"
 					count={count}
 					active={active}
 					className="flex flex-col items-center shrink-0 z-50"
