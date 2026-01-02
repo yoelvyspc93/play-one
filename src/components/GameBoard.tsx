@@ -76,6 +76,7 @@ export function GameBoard({
 							<div className="pointer-events-auto">
 								<DeckArea
 									topCard={state.topCard}
+									lastPlayedCards={state.lastPlayedCards || []}
 									currentColor={state.currentColor}
 									pendingDraw={state.pendingDraw}
 									isMyTurn={isMyTurn}

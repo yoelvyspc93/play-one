@@ -68,6 +68,7 @@ export interface PublicState {
   currentPlayerIndex: number;
   direction: 1 | -1;
   topCard: Card | null;
+  lastPlayedCards: Card[]; // Last 5 cards played, for visual stack
   currentColor: CardColor | null; // The effective color (important after wild)
   pendingDraw: number;
   phase: GamePhase;

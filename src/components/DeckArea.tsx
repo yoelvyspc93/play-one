@@ -7,6 +7,7 @@ import { useTexts } from '@/lib/i18n'
 
 interface DeckAreaProps {
 	topCard: CardType | null
+	lastPlayedCards: CardType[]
 	currentColor: CardColor | null
 	pendingDraw: number
 	isMyTurn: boolean
@@ -15,8 +16,10 @@ interface DeckAreaProps {
 	direction: number
 }
 
+
 export function DeckArea({
 	topCard,
+	lastPlayedCards,
 	currentColor,
 	pendingDraw,
 	isMyTurn,
@@ -26,8 +29,34 @@ export function DeckArea({
 }: DeckAreaProps) {
 	const texts = useTexts()
 
+	// Ensure we have something to show if topCard is present but list is empty (fallback)
+	// We filter out any null/undefined entries just in case
+	const validStack = Array.isArray(lastPlayedCards) ? lastPlayedCards.filter(Boolean) : [];
+	
+	const displayCards = validStack.length > 0 
+		? validStack 
+		: (topCard ? [topCard] : []);
+
+	// Helper to generate stable random-ish positions
+	const getCardStyle = (id: string, index: number) => {
+		if (!id) return { rotate: 0, x: 0, y: 0 };
+		
+		// Use simple hashing on ID
+		let hash = 0;
+		for (let i = 0; i < id.length; i++) {
+			hash = id.charCodeAt(i) + ((hash << 5) - hash);
+		}
+		
+		// Generate random positions between -10deg and +10deg, -8px and +8px
+		const rotate = (hash % 180) - 7; 
+		const x = (hash % 10) - 5;       
+		const y = ((hash >> 1) % 10) - 5;
+		
+		return { rotate, x, y };
+	}
+
 	return (
-		<div className="relative flex items-center justify-center gap-6 md:gap-10">
+		<div className="relative flex items-center justify-center gap-20 md:gap-40">
 			{/* Deck */}
 			<div className="relative group">
 				<div className="absolute -top-2 -left-2 w-20 h-32 md:w-24 md:h-36 rounded-xl bg-black/20 blur-[2px]" />
@@ -58,55 +87,61 @@ export function DeckArea({
 			</div>
 
 			{/* Discard */}
-			<AnimatePresence mode="popLayout">
-				<div className="relative">
-					{topCard ? (
-						<motion.div
-							key={topCard.id}
-							initial={{
-								scale: 1.2,
-								opacity: 0,
-								rotate: direction * 35,
-								y: -40,
-							}}
-							animate={{ scale: 1, opacity: 1, rotate: 0, y: 0 }}
-							exit={{ opacity: 0, scale: 0.9 }}
-							transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-							className="relative z-10"
-						>
-							<div className="relative w-20 h-32 md:w-24 md:h-36">
-								{[
-									{ rotate: -10, x: -10, y: 6, opacity: 0.5 },
-									{ rotate: 6, x: 10, y: 10, opacity: 0.7 },
-									{ rotate: 0, x: 0, y: 0, opacity: 1 },
-								].map((style, index) => (
-									<div
-										key={`discard-${index}`}
-										className="absolute inset-0"
-										style={{
-											transform: `translate(${style.x}px, ${style.y}px) rotate(${style.rotate}deg)`,
-											opacity: style.opacity,
-										}}
-									>
-										<Card
-											card={topCard}
-											activeColor={currentColor}
-											hoverable={false}
-											className="w-20 h-32 md:w-24 md:h-36 shadow-2xl"
-										/>
-									</div>
-								))}
-							</div>
-						</motion.div>
-					) : (
-						<div className="w-16 h-24 md:w-24 md:h-36 border-4 border-dashed border-white/20 rounded-xl flex items-center justify-center text-white/20 font-black">
-							{texts.game.start}
-						</div>
-					)}
+			<div className="relative w-20 h-32 md:w-24 md:h-36">
+				{displayCards.length > 0 ? (
+					<AnimatePresence mode="popLayout">
+						{displayCards.map((card, index) => {
+							const isTop = index === displayCards.length - 1;
+							const style = getCardStyle(card.id, index);
+							
+							return (
+								<motion.div
+									key={card.id}
+									layout
+									className="absolute inset-0"
+									style={{ zIndex: index }}
+									initial={isTop ? {
+										scale: 1.2,
+										opacity: 0,
+										rotate: direction * 45, // Fly in with rotation
+										y: -60,
+									} : { opacity: 0 }}
+									animate={{ 
+										scale: 1, 
+										opacity: 1, // style.opacity ?? 1 
+										rotate: style.rotate,
+										x: style.x,
+										y: style.y
+									}}
+									exit={{ opacity: 0, scale: 0.9 }}
+									transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+								>
+									<Card
+										card={card}
+										activeColor={isTop ? currentColor : card.color} // Only top card shows active game color if wild? Or keep history?
+										// Actually for Wilds, showing "currentColor" on previous wild cards might be confusing if color changed.
+										// But 'card.color' is likely null/WILD.
+										// Let's pass currentColor to all for visual consistency or just top?
+										// If I play Wild Red. Next plays Green 2. The Wild Red is under Green 2.
+										// Does the Wild show Red? 
+										// Card component uses 'activeColor' to show the background for Wilds.
+										// If I pass 'currentColor', all Wilds in stack show CURRENT game color.
+										// This is acceptable.
+										hoverable={false}
+										className="w-20 h-32 md:w-24 md:h-36 shadow-2xl"
+									/>
+								</motion.div>
+							)
+						})}
+					</AnimatePresence>
+				) : (
+					<div className="w-16 h-24 md:w-24 md:h-36 border-4 border-dashed border-white/20 rounded-xl flex items-center justify-center text-white/20 font-black">
+						{texts.game.start}
+					</div>
+				)}
 
-					<div className="absolute -bottom-4 inset-x-4 h-4 bg-black/25 blur-xl rounded-full" />
-				</div>
-			</AnimatePresence>
+				<div className="absolute -bottom-4 inset-x-4 h-4 bg-black/25 blur-xl rounded-full -z-10" />
+			</div>
 		</div>
 	)
 }

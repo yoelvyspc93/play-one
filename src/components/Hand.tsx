@@ -83,14 +83,12 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 										: isPlayable
 										? 1.06
 										: 1,
-									zIndex: isSelected ? 100 : index,
 								}}
 								whileHover={
 									isPlayable && !isSelected
 										? {
 												y: -60,
 												scale: 1.08,
-												zIndex: 100,
 												transition: { duration: 0.2 },
 										  }
 										: {}
