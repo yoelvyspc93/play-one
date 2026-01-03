@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useTexts } from '@/lib/i18n'
 
@@ -10,6 +11,7 @@ interface WinScreenProps {
 
 export function WinScreen({ winnerName, onRestart }: WinScreenProps) {
 	const texts = useTexts()
+	const router = useRouter()
 
 	return (
 		<div className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-black/90 backdrop-blur-lg">
@@ -31,12 +33,20 @@ export function WinScreen({ winnerName, onRestart }: WinScreenProps) {
 						{winnerName}
 					</div>
 
-					<button
-						onClick={onRestart}
-						className="w-full bg-white text-orange-600 font-black text-xl md:text-2xl py-4 md:py-5 px-10 rounded-2xl shadow-2xl hover:scale-[1.03] hover:bg-gray-100 active:scale-[0.98] transition-all uppercase tracking-tight"
-					>
-						{texts.game.playAgain}
-					</button>
+					<div className="flex flex-col gap-3">
+						<button
+							onClick={onRestart}
+							className="w-full bg-white text-orange-600 font-black text-xl md:text-2xl py-4 md:py-5 px-10 rounded-2xl shadow-2xl hover:scale-[1.03] hover:bg-gray-100 active:scale-[0.98] transition-all uppercase tracking-tight"
+						>
+							{texts.game.playAgain}
+						</button>
+						<button
+							onClick={() => router.push('/')}
+							className="w-full bg-black/80 text-white font-black text-lg md:text-xl py-3 md:py-4 px-10 rounded-2xl shadow-xl hover:scale-[1.03] hover:bg-black/90 active:scale-[0.98] transition-all uppercase tracking-tight border border-white/30"
+						>
+							{texts.common.home}
+						</button>
+					</div>
 				</div>
 			</motion.div>
 		</div>

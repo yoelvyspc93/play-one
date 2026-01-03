@@ -174,6 +174,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       nextState.public.pendingDraw = 0;
       nextState.public.direction = 1;
       nextState.public.topCard = null;
+      nextState.public.lastPlayedCards = [];
+      nextState.public.winnerId = undefined;
+      nextState.public.roundEndReason = undefined;
 
       // Re-shuffle deck
       nextState.internal.deck = createDeck();
