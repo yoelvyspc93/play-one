@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
+import type { Ref } from 'react'
 import { Card } from './Card'
 import { Card as CardType, CardColor } from '../engine'
 import { useTexts } from '@/lib/i18n'
@@ -14,6 +15,8 @@ interface DeckAreaProps {
 	canPlay: boolean
 	onDraw: () => void
 	direction: number
+	deckRef?: Ref<HTMLDivElement>
+	discardRef?: Ref<HTMLDivElement>
 }
 
 
@@ -26,6 +29,8 @@ export function DeckArea({
 	canPlay,
 	onDraw,
 	direction,
+	deckRef,
+	discardRef,
 }: DeckAreaProps) {
 	const texts = useTexts()
 
@@ -58,7 +63,7 @@ export function DeckArea({
 	return (
 		<div className="relative flex items-center justify-center gap-10 md:gap-20 -top-5 [transform:perspective(800px)_rotateX(40deg)] [transform-style:preserve-3d]">
 			{/* Deck */}
-			<div className="relative group -top-5">
+			<div className="relative group -top-5" data-zone="deck" ref={deckRef}>
 				<Card
 					hidden
 					card={{} as any}
@@ -85,7 +90,11 @@ export function DeckArea({
 			</div>
 
 			{/* Discard */}
-			<div className="relative w-14 md:w-20 aspect-[5/7]">
+			<div
+				className="relative w-14 md:w-20 aspect-[5/7]"
+				data-zone="discard"
+				ref={discardRef}
+			>
 				{displayCards.length > 0 ? (
 					<AnimatePresence mode="popLayout">
 						{displayCards.map((card, index) => {
@@ -95,7 +104,8 @@ export function DeckArea({
 							return (
 								<motion.div
 									key={card.id}
-									layout
+									layout="position"
+									layoutId={isTop ? `card-${card.id}` : undefined}
 									className="absolute inset-0"
 									style={{ zIndex: index }}
 									initial={isTop ? {
@@ -112,7 +122,7 @@ export function DeckArea({
 										y: style.y
 									}}
 									exit={{ opacity: 0, scale: 1 }}
-									transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+									transition={{ duration: 0.3, ease: 'easeOut' }}
 								>
 									<Card
 										card={card}
