@@ -1,18 +1,18 @@
 'use client'
 
 import { clsx } from 'clsx'
+import { forwardRef } from 'react'
 import { Avatar } from './Avatar'
 import { Card } from './Card'
 
-export function Opponent({
-	player,
-	active,
-	position,
-}: {
-	player: any
-	active: boolean
-	position: 'top' | 'left' | 'right'
-}) {
+export const Opponent = forwardRef<
+	HTMLDivElement,
+	{
+		player: any
+		active: boolean
+		position: 'top' | 'left' | 'right'
+	}
+>(function Opponent({ player, active, position }, ref) {
 	const count = Math.max(0, Number(player?.cardCount ?? 0))
 	const name = String(player?.name ?? 'Player')
 	const visibleCards = Math.min(5, Math.max(1, count || 3))
@@ -49,6 +49,7 @@ const positionStyles = {
 				'relative flex items-center justify-center transition-all duration-300',
 				active ? 'opacity-100' : 'opacity-95'
 			)}
+			ref={ref}
 		>
 			<div className={clsx('flex items-center', positionStyles.wrapper)}>
 				<Avatar
@@ -92,4 +93,4 @@ const positionStyles = {
 			</div>
 		</div>
 	)
-}
+})
