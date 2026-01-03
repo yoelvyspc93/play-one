@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import {
 	PublicState,
 	Card as CardType,
@@ -28,6 +29,7 @@ export function GameBoard({
 	isMyTurn,
 	myId,
 }: GameBoardProps) {
+	const [showWinScreen, setShowWinScreen] = useState(false)
 	const totalPlayers = state.order.length
 	const myIndex = state.order.indexOf(myId)
 
@@ -54,6 +56,17 @@ export function GameBoard({
 	}
 
 	const currentPlayerId = state.order[state.currentPlayerIndex]
+
+	useEffect(() => {
+		if (state.phase !== 'ROUND_END') {
+			setShowWinScreen(false)
+			return
+		}
+
+		setShowWinScreen(false)
+		const timer = window.setTimeout(() => setShowWinScreen(true), 1000)
+		return () => window.clearTimeout(timer)
+	}, [state.phase])
 
 	return (
 		<div
@@ -147,13 +160,13 @@ export function GameBoard({
 				/>
 			)}
 
-			{state.phase === 'ROUND_END' && (
+			{state.phase === 'ROUND_END' && showWinScreen && (
 				<WinScreen
 					winnerName={
 						state.players.find((p) => p.id === state.winnerId)?.name ||
 						'Unknown'
 					}
-					onRestart={() => window.location.reload()}
+					onRestart={() => onAction({ type: ActionType.START_GAME })}
 				/>
 			)}
 		</div>
