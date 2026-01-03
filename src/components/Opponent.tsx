@@ -49,6 +49,7 @@ const positionStyles = {
 				'relative flex items-center justify-center transition-all duration-300',
 				active ? 'opacity-100' : 'opacity-95'
 			)}
+			ref={ref}
 		>
 			<div className={clsx('flex items-center', positionStyles.wrapper)}>
 				<Avatar
