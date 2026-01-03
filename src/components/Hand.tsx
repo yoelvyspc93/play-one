@@ -64,7 +64,8 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 						return (
 							<motion.div
 								key={card.id}
-								layout
+								layout="position"
+								layoutId={`card-${card.id}`}
 								initial={{ y: 100, opacity: 0 }}
 								animate={{
 									y: isSelected
@@ -94,7 +95,7 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 										: {}
 								}
 								exit={{ y: 100, opacity: 0 }}
-								transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+								transition={{ type: 'tween', ease: 'easeOut', duration: 0.25 }}
 								className={`relative -bottom-14 md:-bottom-12 ${
 									index > 0 ? overlap : ''
 								}`}
