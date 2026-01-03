@@ -17,6 +17,7 @@ interface CardProps {
 	activeColor?: CardColor | null
 	hoverable?: boolean
 	size?: CardSize
+	layout?: boolean | "position" | "size" | "preserve-aspect"
 }
 
 const colorStyles = {
@@ -219,6 +220,7 @@ export function Card({
 	activeColor,
 	hoverable = true,
 	size = 'md',
+	layout = true,
 }: CardProps) {
 	if (hidden)
 		return (
@@ -241,7 +243,7 @@ export function Card({
 	
 	return (
 		<motion.div
-			layout
+			layout={layout}
 			onClick={!disabled ? onClick : undefined}
 			whileHover={
 				!disabled && hoverable ? { y: -20, scale: 1.1, zIndex: 10 } : {}
