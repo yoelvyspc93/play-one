@@ -32,14 +32,23 @@ export function GameBoard({
 	myId,
 }: GameBoardProps) {
 	const [showWinScreen, setShowWinScreen] = useState(false)
-	const [drawAnimation, setDrawAnimation] = useState<{
-		card: CardType
-		from: { x: number; y: number }
-		to: { x: number; y: number }
-	} | null>(null)
+	const [flyAnimations, setFlyAnimations] = useState<
+		{
+			id: string
+			card: CardType
+			from: { x: number; y: number }
+			to: { x: number; y: number }
+			size: 'sm' | 'md'
+		}[]
+	>([])
 	const deckRef = useRef<HTMLDivElement | null>(null)
+	const discardRef = useRef<HTMLDivElement | null>(null)
 	const handRef = useRef<HTMLDivElement | null>(null)
 	const previousHandCount = useRef(myHand.length)
+	const previousPlayerCounts = useRef<Record<string, number>>({})
+	const opponentTopRef = useRef<HTMLDivElement | null>(null)
+	const opponentLeftRef = useRef<HTMLDivElement | null>(null)
+	const opponentRightRef = useRef<HTMLDivElement | null>(null)
 	const totalPlayers = state.order.length
 	const myIndex = state.order.indexOf(myId)
 
@@ -78,6 +87,19 @@ export function GameBoard({
 		return () => window.clearTimeout(timer)
 	}, [state.phase])
 
+	const pushFlyAnimation = (payload: {
+		card: CardType
+		from: { x: number; y: number }
+		to: { x: number; y: number }
+		size: 'sm' | 'md'
+	}) => {
+		const id = `${payload.card.id}-${Date.now()}`
+		setFlyAnimations((prev) => [...prev, { ...payload, id }])
+		window.setTimeout(() => {
+			setFlyAnimations((prev) => prev.filter((item) => item.id !== id))
+		}, 400)
+	}
+
 	useEffect(() => {
 		if (myHand.length <= previousHandCount.current) {
 			previousHandCount.current = myHand.length
@@ -86,9 +108,8 @@ export function GameBoard({
 
 		const drawnCard = myHand[myHand.length - 1]
 		const deckRect = deckRef.current?.getBoundingClientRect()
-		const handRect = handRef.current?.getBoundingClientRect()
 
-		if (!drawnCard || !deckRect || !handRect) {
+		if (!drawnCard || !deckRect) {
 			previousHandCount.current = myHand.length
 			return
 		}
@@ -97,17 +118,94 @@ export function GameBoard({
 			x: deckRect.left + deckRect.width / 2,
 			y: deckRect.top + deckRect.height / 2,
 		}
-		const to = {
-			x: handRect.left + handRect.width / 2,
-			y: handRect.top + handRect.height / 2,
-		}
 
-		setDrawAnimation({ card: drawnCard, from, to })
-		const timer = window.setTimeout(() => setDrawAnimation(null), 400)
+		requestAnimationFrame(() => {
+			const targetCard = document.querySelector(
+				`[data-card-id="${drawnCard.id}"]`
+			) as HTMLElement | null
+			const targetRect = targetCard?.getBoundingClientRect()
+			const fallbackRect = handRef.current?.getBoundingClientRect()
+			const toRect = targetRect || fallbackRect
+
+			if (!toRect) return
+
+			const to = {
+				x: toRect.left + toRect.width / 2,
+				y: toRect.top + toRect.height / 2,
+			}
+
+			pushFlyAnimation({ card: drawnCard, from, to, size: 'md' })
+		})
 
 		previousHandCount.current = myHand.length
-		return () => window.clearTimeout(timer)
 	}, [myHand])
+
+	useEffect(() => {
+		const currentCounts: Record<string, number> = {}
+		state.players.forEach((player) => {
+			currentCounts[player.id] = player.cardCount ?? 0
+		})
+
+		const prevCounts = previousPlayerCounts.current
+		if (Object.keys(prevCounts).length === 0) {
+			previousPlayerCounts.current = currentCounts
+			return
+		}
+
+		const deckRect = deckRef.current?.getBoundingClientRect()
+		const discardRect = discardRef.current?.getBoundingClientRect()
+
+		state.players.forEach((player) => {
+			if (player.id === myId) return
+
+			const prev = prevCounts[player.id] ?? 0
+			const next = currentCounts[player.id] ?? 0
+			if (prev === next) return
+
+			const opponentRef =
+				(playersAtPos[2]?.id === player.id && opponentTopRef) ||
+				(playersAtPos[3]?.id === player.id && opponentLeftRef) ||
+				(playersAtPos[1]?.id === player.id && opponentRightRef) ||
+				null
+			const opponentRect = opponentRef?.current?.getBoundingClientRect()
+
+			if (next > prev && deckRect && opponentRect) {
+				const from = {
+					x: deckRect.left + deckRect.width / 2,
+					y: deckRect.top + deckRect.height / 2,
+				}
+				const to = {
+					x: opponentRect.left + opponentRect.width / 2,
+					y: opponentRect.top + opponentRect.height / 2,
+				}
+				pushFlyAnimation({
+					card: { id: `back-${player.id}-${Date.now()}` } as CardType,
+					from,
+					to,
+					size: 'sm',
+				})
+			}
+
+			if (next < prev && opponentRect && discardRect && state.topCard) {
+				const from = {
+					x: opponentRect.left + opponentRect.width / 2,
+					y: opponentRect.top + opponentRect.height / 2,
+				}
+				const to = {
+					x: discardRect.left + discardRect.width / 2,
+					y: discardRect.top + discardRect.height / 2,
+				}
+				pushFlyAnimation({
+					card: state.topCard,
+					from,
+					to,
+					size: 'md',
+				})
+			}
+		})
+
+		previousPlayerCounts.current = currentCounts
+	}, [state.players, state.topCard, playersAtPos, myId])
 
 	return (
 		<LayoutGroup>
@@ -144,6 +242,7 @@ export function GameBoard({
 											})
 										}
 										deckRef={deckRef}
+										discardRef={discardRef}
 									/>
 								</div>
 							</div>
@@ -156,6 +255,7 @@ export function GameBoard({
 								player={playersAtPos[2]}
 								active={currentPlayerId === playersAtPos[2].id}
 								position="top"
+								ref={opponentTopRef}
 							/>
 						)}
 					</div>
@@ -166,6 +266,7 @@ export function GameBoard({
 								player={playersAtPos[3]}
 								active={currentPlayerId === playersAtPos[3].id}
 								position="left"
+								ref={opponentLeftRef}
 							/>
 						)}
 					</div>
@@ -176,6 +277,7 @@ export function GameBoard({
 								player={playersAtPos[1]}
 								active={currentPlayerId === playersAtPos[1].id}
 								position="right"
+								ref={opponentRightRef}
 							/>
 						)}
 					</div>
@@ -201,32 +303,34 @@ export function GameBoard({
 					</div>
 				</div>
 
-				{drawAnimation && (
+				{flyAnimations.map((animation) => (
 					<motion.div
+						key={animation.id}
 						className="fixed inset-0 pointer-events-none z-50"
 						initial={{
-							x: drawAnimation.from.x,
-							y: drawAnimation.from.y,
+							x: animation.from.x,
+							y: animation.from.y,
 							scale: 1,
 							opacity: 0.9,
 						}}
 						animate={{
-							x: drawAnimation.to.x,
-							y: drawAnimation.to.y,
-							scale: 1.2,
+							x: animation.to.x,
+							y: animation.to.y,
+							scale: 1.15,
 							opacity: 0.95,
 						}}
 						transition={{ duration: 0.35, ease: 'easeOut' }}
 					>
 						<div className="absolute -translate-x-1/2 -translate-y-1/2">
 							<Card
-								card={drawAnimation.card}
-								size="md"
+								card={animation.card}
+								size={animation.size}
 								hoverable={false}
+								hidden={animation.card.id.startsWith('back-')}
 							/>
 						</div>
 					</motion.div>
-				)}
+				))}
 
 				{isMyTurn && state.phase === 'CHOOSE_COLOR_REQUIRED' && (
 					<ColorChooser

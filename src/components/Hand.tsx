@@ -66,6 +66,7 @@ export function Hand({ cards, onPlay, active, state }: HandProps) {
 								key={card.id}
 								layout="position"
 								layoutId={`card-${card.id}`}
+								data-card-id={card.id}
 								initial={{ y: 100, opacity: 0 }}
 								animate={{
 									y: isSelected
