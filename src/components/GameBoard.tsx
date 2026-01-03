@@ -38,7 +38,8 @@ export function GameBoard({
 			card: CardType
 			from: { x: number; y: number }
 			to: { x: number; y: number }
-			size: 'sm' | 'md'
+			size: 'sm' | 'md' | 'lg'
+			initialScale?: number
 		}[]
 	>([])
 	const deckRef = useRef<HTMLDivElement | null>(null)
@@ -91,7 +92,8 @@ export function GameBoard({
 		card: CardType
 		from: { x: number; y: number }
 		to: { x: number; y: number }
-		size: 'sm' | 'md'
+		size: 'sm' | 'md' | 'lg'
+		initialScale?: number
 	}) => {
 		const id = `${payload.card.id}-${Date.now()}`
 		setFlyAnimations((prev) => [...prev, { ...payload, id }])
@@ -106,10 +108,10 @@ export function GameBoard({
 			return
 		}
 
-		const drawnCard = myHand[myHand.length - 1]
+		const newCards = myHand.slice(previousHandCount.current)
 		const deckRect = deckRef.current?.getBoundingClientRect()
 
-		if (!drawnCard || !deckRect) {
+		if (!deckRect) {
 			previousHandCount.current = myHand.length
 			return
 		}
@@ -119,22 +121,32 @@ export function GameBoard({
 			y: deckRect.top + deckRect.height / 2,
 		}
 
-		requestAnimationFrame(() => {
-			const targetCard = document.querySelector(
-				`[data-card-id="${drawnCard.id}"]`
-			) as HTMLElement | null
-			const targetRect = targetCard?.getBoundingClientRect()
-			const fallbackRect = handRef.current?.getBoundingClientRect()
-			const toRect = targetRect || fallbackRect
+		newCards.forEach((drawnCard, index) => {
+			setTimeout(() => {
+				requestAnimationFrame(() => {
+					const targetCard = document.querySelector(
+						`[data-card-id="${drawnCard.id}"]`
+					) as HTMLElement | null
+					const targetRect = targetCard?.getBoundingClientRect()
+					const fallbackRect = handRef.current?.getBoundingClientRect()
+					const toRect = targetRect || fallbackRect
 
-			if (!toRect) return
+					if (!toRect) return
 
-			const to = {
-				x: toRect.left + toRect.width / 2,
-				y: toRect.top + toRect.height / 2,
-			}
+					const to = {
+						x: toRect.left + toRect.width / 2,
+						y: toRect.top + toRect.height / 2,
+					}
 
-			pushFlyAnimation({ card: drawnCard, from, to, size: 'md' })
+					pushFlyAnimation({ 
+						card: drawnCard, 
+						from, 
+						to, 
+						size: 'lg',
+						initialScale: 0.7 // Deck(md) -> Hand(lg) approx ratio
+					})
+				})
+			}, index * 500) // Stagger 200ms
 		})
 
 		previousHandCount.current = myHand.length
@@ -169,20 +181,31 @@ export function GameBoard({
 				null
 			const opponentRect = opponentRef?.current?.getBoundingClientRect()
 
-			if (next > prev && deckRect && opponentRect) {
+			if (next > prev && deckRect) {
 				const from = {
 					x: deckRect.left + deckRect.width / 2,
 					y: deckRect.top + deckRect.height / 2,
 				}
-				const to = {
-					x: opponentRect.left + opponentRect.width / 2,
-					y: opponentRect.top + opponentRect.height / 2,
-				}
-				pushFlyAnimation({
-					card: { id: `back-${player.id}-${Date.now()}` } as CardType,
-					from,
-					to,
-					size: 'sm',
+				requestAnimationFrame(() => {
+					const opponentCards = document.querySelectorAll(
+						`[data-opponent-id="${player.id}"] [data-opponent-card]`
+					)
+					const targetCard = opponentCards[opponentCards.length - 1] as
+						| HTMLElement
+						| undefined
+					const targetRect =
+						targetCard?.getBoundingClientRect() || opponentRect
+					if (!targetRect) return
+					const to = {
+						x: targetRect.left + targetRect.width / 2,
+						y: targetRect.top + targetRect.height / 2,
+					}
+					pushFlyAnimation({
+						card: { id: `back-${player.id}-${Date.now()}` } as CardType,
+						from,
+						to,
+						size: 'sm',
+					})
 				})
 			}
 
@@ -200,6 +223,7 @@ export function GameBoard({
 					from,
 					to,
 					size: 'md',
+					initialScale: 0.5 // Opponent(sm) -> Discard(md) approx ratio
 				})
 			}
 		})
@@ -310,16 +334,16 @@ export function GameBoard({
 						initial={{
 							x: animation.from.x,
 							y: animation.from.y,
-							scale: 1,
-							opacity: 0.9,
+							scale: animation.initialScale ?? 1,
+							opacity: 0,
 						}}
 						animate={{
 							x: animation.to.x,
 							y: animation.to.y,
-							scale: 1.15,
-							opacity: 0.95,
+							scale: 1,
+							opacity: 1,
 						}}
-						transition={{ duration: 0.35, ease: 'easeOut' }}
+						transition={{ duration: 0.5, ease: 'backOut' }}
 					>
 						<div className="absolute -translate-x-1/2 -translate-y-1/2">
 							<Card

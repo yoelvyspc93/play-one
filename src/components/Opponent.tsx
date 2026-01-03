@@ -15,7 +15,7 @@ export const Opponent = forwardRef<
 >(function Opponent({ player, active, position }, ref) {
 	const count = Math.max(0, Number(player?.cardCount ?? 0))
 	const name = String(player?.name ?? 'Player')
-	const visibleCards = Math.min(5, Math.max(1, count || 3))
+	const visibleCards = Math.max(1, count || 3)
 	const fanAngles = Array.from({ length: visibleCards }).map((_, index) => {
 		const spread = 18
 		const center = (visibleCards - 1) / 2
@@ -61,6 +61,8 @@ const positionStyles = {
 					className="flex flex-col items-center shrink-0 z-50"
 				/>
 				<div
+					ref={ref}
+					data-opponent-id={player?.id}
 					className={clsx(
 						'relative flex items-center justify-center',
 						positionStyles.cards,
@@ -70,6 +72,7 @@ const positionStyles = {
 					{fanAngles.map((angle, index) => (
 						<div
 							key={`${name}-card-${index}`}
+							data-opponent-card
 							className={clsx(
 								'relative',
 								index === 0 ? '' : positionStyles.overlap

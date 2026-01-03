@@ -104,8 +104,6 @@ export function DeckArea({
 							return (
 								<motion.div
 									key={card.id}
-									layout="position"
-									layoutId={isTop ? `card-${card.id}` : undefined}
 									className="absolute inset-0"
 									style={{ zIndex: index }}
 									initial={isTop ? {
@@ -137,6 +135,7 @@ export function DeckArea({
 										// This is acceptable.
 										hoverable={false}
 										size="md"
+										layout={false}
 									/>
 								</motion.div>
 							)
